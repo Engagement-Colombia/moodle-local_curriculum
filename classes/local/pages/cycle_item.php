@@ -44,11 +44,16 @@ class cycle_item extends managepage {
 
         // For cycle items, the parentid is the cycleid, so we need to get the versionid from the cycle.
         if (empty($this->parentid)) {
-            if (empty($this->id)) {
-                throw new \moodle_exception('error_invalidid', 'local_curriculum');
+            $cycleid = optional_param('cycleid', 0, PARAM_INT);
+            if ($cycleid) {
+                $this->parentid = $cycleid;
+            } else {
+                if (empty($this->id)) {
+                    throw new \moodle_exception('error_invalidid', 'local_curriculum');
+                }
+                $cycleid = $DB->get_field('local_curriculum_cycle_items', 'cycleid', ['id' => $this->id], MUST_EXIST);
+                $this->parentid = $cycleid;
             }
-            $cycleid = $DB->get_field('local_curriculum_cycle_items', 'cycleid', ['id' => $this->id], MUST_EXIST);
-            $this->parentid = $cycleid;
         }
     }
 
