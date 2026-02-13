@@ -96,7 +96,6 @@ class cycle_item extends managepage {
                         ['ptype' => self::PAGEKEY, 'parentid' => $cycleid]
                     );
                     redirect($redirecturl);
-
                 } else if ($data = $form->get_data()) {
                     $record = new \stdClass();
                     $record->coursecode = trim($data->coursecode);

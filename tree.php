@@ -48,77 +48,53 @@ if (empty($programs)) {
     echo $OUTPUT->notification(get_string('noprograms', 'local_curriculum'));
 } else {
     $treedata = [];
+    $versions = $DB->get_records('local_curriculum_versions', [], 'name ASC');
+    $cycles = $DB->get_records('local_curriculum_cycles', [], 'stage ASC, name ASC');
+    $items = $DB->get_records('local_curriculum_cycle_items', [], 'id ASC');
 
     foreach ($programs as $program) {
-        $programnode = [
-            'id' => $program->id,
-            'name' => $program->name,
-            'description' => $program->description,
-            'status' => $program->status,
-            'type' => 'program',
-            'versions' => [],
-        ];
+        $program->versions = [];
+        $treedata[$program->id] = $program;
+    }
 
-        $versions = $DB->get_records('local_curriculum_versions',
-            ['programid' => $program->id], 'name ASC');
+    foreach ($versions as $version) {
+        $version->cycles = [];
+        $treedata[$version->programid]->versions[$version->id] = $version;
+    }
 
-        foreach ($versions as $version) {
-            $versionnode = [
-                'id' => $version->id,
-                'name' => $version->name,
-                'startdate' => $version->startdate,
-                'enddate' => $version->enddate,
-                'type' => 'version',
-                'cycles' => [],
-            ];
+    foreach ($cycles as $cycle) {
+        $cycle->items = [];
+        $version = $versions[$cycle->versionid];
+        $treedata[$version->programid]->versions[$cycle->versionid]->cycles[$cycle->id] = $cycle;
+    }
 
-            $cycles = $DB->get_records('local_curriculum_cycles',
-                ['versionid' => $version->id], 'stage ASC, name ASC');
-
-            foreach ($cycles as $cycle) {
-                $cyclenode = [
-                    'id' => $cycle->id,
-                    'name' => $cycle->name,
-                    'description' => $cycle->description,
-                    'duration' => $cycle->duration,
-                    'stage' => $cycle->stage,
-                    'type' => 'cycle',
-                    'items' => [],
-                ];
-
-                $items = $DB->get_records('local_curriculum_cycle_items',
-                    ['cycleid' => $cycle->id], 'id ASC');
-
-                foreach ($items as $item) {
-                    $itemnode = [
-                        'id' => $item->id,
-                        'coursecode' => $item->coursecode,
-                        'grouptemplate' => $item->grouptemplate,
-                        'conditions' => $item->conditions,
-                        'validity' => $item->validity,
-                        'type' => 'item',
-                    ];
-                    $cyclenode['items'][] = $itemnode;
-                }
-
-                $versionnode['cycles'][] = $cyclenode;
-            }
-
-            $programnode['versions'][] = $versionnode;
-        }
-
-        $treedata[] = $programnode;
+    foreach ($items as $item) {
+        $cycle = $cycles[$item->cycleid];
+        $version = $versions[$cycle->versionid];
+        $treedata[$version->programid]->versions[$cycle->versionid]->cycles[$item->cycleid]->items[] = $item;
     }
 
     // Prepare template data.
     $templatedata = [
-        'programs' => $treedata,
+        'programs' => [],
         'manageurl' => $CFG->wwwroot,
     ];
+
+    foreach ($treedata as $program) {
+        $templatedata['programs'] = array_values($treedata); // Re-index for template.
+        foreach ($templatedata['programs'] as &$prog) {
+            $prog->versions = array_values($prog->versions);
+            foreach ($prog->versions as &$ver) {
+                $ver->cycles = array_values($ver->cycles);
+                foreach ($ver->cycles as &$cyc) {
+                    $cyc->items = array_values($cyc->items);
+                }
+            }
+        }
+    }
 
     // Render tree template.
     echo $OUTPUT->render_from_template('local_curriculum/tree', $templatedata);
 }
 
 echo $OUTPUT->footer();
-

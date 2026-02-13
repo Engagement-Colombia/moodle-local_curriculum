@@ -40,7 +40,6 @@ use lang_string;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class programs extends system_report {
-
     /**
      * Initialise the report
      */
@@ -61,13 +60,12 @@ class programs extends system_report {
         $this->add_base_fields("{$entitymainalias}.id");
 
         $this->add_columns_from_entities([
-                'program:name',
-                'program:status',
-                'program:timecreated',
-                'program:timemodified',
-                'program:versioncount',
-            ]
-        );
+            'program:name',
+            'program:status',
+            'program:timecreated',
+            'program:timemodified',
+            'program:versioncount',
+        ]);
 
         $this->add_filters_from_entities(['program:name', 'program:status']);
 
@@ -92,10 +90,10 @@ class programs extends system_report {
             new pix_icon('t/delete', get_string('delete')),
             [
                 'onclick' => 'return confirm("' . get_string('confirmdeleteprogram', 'local_curriculum') . '");',
-                'class' => 'text-danger'
+                'class' => 'text-danger',
             ]
         );
-        $deleteaction->add_callback(function($row) use ($deleteaction) {
+        $deleteaction->add_callback(function ($row) use ($deleteaction) {
             // Delete action is only available if there are no versions.
             if (!empty($row->versioncount)) {
                 return null;

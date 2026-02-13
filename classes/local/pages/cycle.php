@@ -42,7 +42,7 @@ class cycle extends managepage {
         parent::__construct();
 
         // For cycle, the parentid is the versionid, so we need to get the versionid from the cycle if not provided.
-         if (empty($this->parentid)) {
+        if (empty($this->parentid)) {
             if (empty($this->id)) {
                 throw new \moodle_exception('error_invalidid', 'local_curriculum');
             }
@@ -94,8 +94,8 @@ class cycle extends managepage {
                         '/local/curriculum/manage.php',
                         ['ptype' => self::PAGEKEY, 'parentid' => $versionid]
                     );
-                    redirect($redirecturl);
 
+                    redirect($redirecturl);
                 } else if ($data = $form->get_data()) {
                     $record = new \stdClass();
                     $record->name = trim($data->name);

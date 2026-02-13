@@ -39,7 +39,6 @@ use lang_string;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cycle_item extends base {
-
     /**
      * Database tables that this entity uses
      *

@@ -39,7 +39,6 @@ use lang_string;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class version extends base {
-
     /**
      * Database tables that this entity uses
      *
@@ -151,7 +150,6 @@ class version extends base {
         ->add_field("(SELECT COUNT(1) FROM {local_curriculum_cycles} c WHERE c.versionid = {$versionalias}.id)", 'cyclecount')
         ->set_type(column::TYPE_INTEGER)
         ->set_is_sortable(true);
-
 
         return $columns;
     }

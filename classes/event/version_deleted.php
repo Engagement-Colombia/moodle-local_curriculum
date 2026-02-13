@@ -58,7 +58,8 @@ class version_deleted extends \core\event\base {
      */
     public function get_url() {
         // Redirect to program list or parent program view?
-        // Since we don't know parent program id easily here (unless in snapshots but we can't rely on it being restored), manage.php might be best default.
+        // Since we don't know parent program id easily here (unless in snapshots but we can't rely on it being restored),
+        // manage.php might be best default.
         return new \moodle_url('/local/curriculum/manage.php');
     }
 }

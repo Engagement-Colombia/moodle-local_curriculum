@@ -41,7 +41,6 @@ use context_system;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cycle extends base {
-
     /**
      * Database tables that this entity uses
      *
@@ -141,7 +140,7 @@ class cycle extends base {
         ->add_fields("{$cyclealias}.description")
         ->set_is_sortable(false)
         ->set_type(column::TYPE_TEXT)
-        ->add_callback(static function($value) {
+        ->add_callback(static function ($value) {
             return format_text($value, FORMAT_MOODLE, ['context' => context_system::instance()]);
         });
 

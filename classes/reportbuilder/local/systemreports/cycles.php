@@ -33,8 +33,6 @@ use pix_icon;
 use context_system;
 use lang_string;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * System report for curriculum cycles
  *
@@ -43,7 +41,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cycles extends system_report {
-
     /**
      * Initialise the report
      */
@@ -108,10 +105,10 @@ class cycles extends system_report {
             new pix_icon('t/delete', get_string('delete')),
             [
                 'onclick' => 'return confirm("' . get_string('confirmdeletecycle', 'local_curriculum') . '");',
-                'class' => 'text-danger'
+                'class' => 'text-danger',
             ]
         );
-        $deleteaction->add_callback(function($row) use ($deleteaction) {
+        $deleteaction->add_callback(function ($row) use ($deleteaction) {
             // Delete action is only available if there are no items.
             if (!empty($row->itemcount)) {
                 return null;

@@ -33,8 +33,6 @@ use pix_icon;
 use context_system;
 use lang_string;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * System report for curriculum cycle items
  *
@@ -43,7 +41,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cycle_items extends system_report {
-
     /**
      * Initialise the report
      */
@@ -93,11 +90,14 @@ class cycle_items extends system_report {
 
         // Delete.
         $deleteaction = new action(
-            new moodle_url('/local/curriculum/manage.php', ['id' => ':id', 'action' => 'delete', 'ptype' => cycleitempage::PAGEKEY]),
+            new moodle_url(
+                '/local/curriculum/manage.php',
+                ['id' => ':id', 'action' => 'delete', 'ptype' => cycleitempage::PAGEKEY]
+            ),
             new pix_icon('t/delete', get_string('delete')),
             [
                 'onclick' => 'return confirm("' . get_string('confirmdeleteitem', 'local_curriculum') . '");',
-                'class' => 'text-danger'
+                'class' => 'text-danger',
             ]
         );
         $this->add_action($deleteaction);

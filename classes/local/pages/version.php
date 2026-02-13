@@ -78,7 +78,6 @@ class version extends managepage {
                         ['ptype' => self::PAGEKEY, 'parentid' => $programid]
                     );
                     redirect($redirecturl);
-
                 } else if ($data = $form->get_data()) {
                     $record = new \stdClass();
                     $record->name = trim($data->name);

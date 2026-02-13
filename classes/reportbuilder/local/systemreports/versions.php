@@ -31,9 +31,6 @@ use local_curriculum\local\pages\version as versionpage;
 use moodle_url;
 use pix_icon;
 use context_system;
-use lang_string;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * System report for curriculum versions
@@ -43,7 +40,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class versions extends system_report {
-
     /**
      * Initialise the report
      */
@@ -72,7 +68,7 @@ class versions extends system_report {
         ]);
 
         $this->add_filters_from_entities([
-            'version:name'
+            'version:name',
         ]);
 
         // Action: Manage Cycles.
@@ -103,10 +99,10 @@ class versions extends system_report {
             new pix_icon('t/delete', get_string('delete')),
             [
                 'onclick' => 'return confirm("' . get_string('confirmdeleteversion', 'local_curriculum') . '");',
-                'class' => 'text-danger'
+                'class' => 'text-danger',
             ]
         );
-        $deleteaction->add_callback(function($row) use ($deleteaction) {
+        $deleteaction->add_callback(function ($row) use ($deleteaction) {
             // Delete action is only available if there are no cycles.
             if (!empty($row->cyclecount)) {
                 return null;

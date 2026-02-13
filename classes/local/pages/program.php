@@ -46,7 +46,6 @@ class program extends managepage {
     /**
      * Get the manage title for the page.
      *
-     * @param int $parentid
      * @return string
      */
     public function get_managetitle(): string {

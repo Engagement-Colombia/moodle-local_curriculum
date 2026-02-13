@@ -131,7 +131,7 @@ class program extends base {
         ->add_fields("{$programalias}.description")
         ->set_is_sortable(false)
         ->set_type(column::TYPE_TEXT)
-        ->add_callback(static function($value) {
+        ->add_callback(static function ($value) {
             return format_text($value, FORMAT_MOODLE, ['context' => context_system::instance()]);
         });
 
@@ -144,7 +144,7 @@ class program extends base {
         ->add_fields("{$programalias}.status")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER)
-        ->add_callback(function($value) {
+        ->add_callback(function ($value) {
             if ($value == 1) {
                 return get_string('status_enabled', 'local_curriculum');
             }

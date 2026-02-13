@@ -38,13 +38,13 @@ class managepage {
 
     /**
      * ID of the item being managed, if any.
-      * @var int
+     * @var int
      */
     public $id = 0;
 
     /**
      * ID of the parent item, if any (e.g. version ID for a program page).
-      * @var int
+     * @var int
      */
     public $parentid = 0;
 
