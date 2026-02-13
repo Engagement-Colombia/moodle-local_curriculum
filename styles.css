@@ -1,0 +1,282 @@
+/* This file is part of Moodle - http://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Styles for curriculum.
+ *
+ * @package    local_curriculum
+ * @copyright  2026 David Herney @ BambuCo
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+.curriculum-managenav {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    justify-content: center;
+}
+
+.curriculum-tree {
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 900px;
+    margin: auto;
+}
+
+.curriculum-tree-node {
+    margin: 0;
+    padding: 0;
+}
+
+.curriculum-tree-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 8px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #eee;
+}
+
+.curriculum-tree-item:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Toggle button */
+.curriculum-tree-toggle {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin: 0 4px 0 0;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 16px;
+    position: relative;
+}
+
+.curriculum-tree-toggle::before {
+    content: '▶';
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.curriculum-tree-toggle[aria-expanded="true"]::before {
+    transform: rotate(90deg);
+}
+
+.curriculum-tree-toggle:hover {
+    color: #000;
+}
+
+/* Content area */
+.curriculum-tree-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.curriculum-tree-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #333;
+    word-break: break-word;
+}
+
+.curriculum-tree-label img {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.curriculum-tree-description {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    margin-left: 24px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.curriculum-tree-meta {
+    display: block;
+    color: #888;
+    font-size: 12px;
+    margin-left: 24px;
+}
+
+/* Actions area */
+.curriculum-tree-actions {
+    flex-shrink: 0;
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.curriculum-tree-action-link {
+    width: 24px;
+    height: 24px;
+    padding: 5px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.curriculum-tree-action-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.curriculum-tree-action-link .icon {
+    margin: 0;
+}
+
+.curriculum-tree-action-link img {
+    width: 16px;
+    height: 16px;
+}
+
+/* Children nodes with indentation */
+.curriculum-tree-children {
+    margin-left: 24px;
+    border-left: 1px solid #ddd;
+    padding-left: 0;
+}
+
+.curriculum-tree-children:first-child {
+    margin-top: 0;
+}
+
+.curriculum-tree-empty {
+    padding: 12px 8px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Node type specific styles */
+.curriculum-tree-program .curriculum-tree-item {
+    background-color: rgba(66, 139, 202, 0.05);
+    border-left: 3px solid #428bca;
+    padding-left: 8px;
+}
+
+.curriculum-tree-version .curriculum-tree-item {
+    background-color: rgba(92, 184, 92, 0.05);
+    border-left: 3px solid #5cb85c;
+    padding-left: 8px;
+}
+
+.curriculum-tree-cycle .curriculum-tree-item {
+    background-color: rgba(240, 173, 78, 0.05);
+    border-left: 3px solid #f0ad4e;
+    padding-left: 8px;
+}
+
+.curriculum-tree-item-leaf .curriculum-tree-item {
+    background-color: rgba(217, 83, 79, 0.05);
+    border-left: 3px solid #d9534f;
+    padding-left: 8px;
+}
+
+/* Collapsed state */
+.curriculum-tree-collapsed > .curriculum-tree-children {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .curriculum-tree-item {
+        flex-wrap: wrap;
+    }
+
+    .curriculum-tree-actions {
+        margin-left: 0;
+        margin-top: 4px;
+        width: 100%;
+        order: 3;
+    }
+
+    .curriculum-tree-toggle {
+        order: 1;
+    }
+
+    .curriculum-tree-content {
+        order: 2;
+    }
+}
+
+/* Tree controls */
+.curriculum-tree-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.curriculum-tree-control-btn {
+    padding: 6px 12px;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.curriculum-tree-control-btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.curriculum-tree-control-btn:active {
+    background-color: #dee2e6;
+}
+
+.curriculum-tree-control-btn:focus {
+    outline: 2px solid #06c;
+    outline-offset: 2px;
+}
+
+/* Accessibility */
+.curriculum-tree-toggle:focus,
+.curriculum-tree-action:focus {
+    outline: 2px solid #06c;
+    outline-offset: 2px;
+}
+
+.curriculum-tree-toggle:focus::before {
+    outline: none;
+}

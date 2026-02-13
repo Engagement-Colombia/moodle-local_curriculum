@@ -33,6 +33,23 @@ class cycle extends managepage {
      * @var string
      */
     public const PAGEKEY = 'cycle';
+    /**
+     * Constructor
+     */
+    public function __construct() {
+        global $DB;
+
+        parent::__construct();
+
+        // For cycle, the parentid is the versionid, so we need to get the versionid from the cycle if not provided.
+         if (empty($this->parentid)) {
+            if (empty($this->id)) {
+                throw new \moodle_exception('error_invalidid', 'local_curriculum');
+            }
+            $versionid = $DB->get_field('local_curriculum_cycles', 'versionid', ['id' => $this->id], MUST_EXIST);
+            $this->parentid = $versionid;
+        }
+    }
 
     /**
      * Get page title.

@@ -50,6 +50,8 @@ $PAGE->set_heading(get_string('pluginname', 'local_curriculum'));
 
 echo $OUTPUT->header();
 
+echo $OUTPUT->render_from_template('local_curriculum/managenav', ['wwwroot' => $CFG->wwwroot, 'ismanage' => true]);
+
 $titleh1 = $currentpage->get_managetitle();
 echo $OUTPUT->heading($titleh1);
 

@@ -35,6 +35,24 @@ class cycle_item extends managepage {
     public const PAGEKEY = 'cycle_item';
 
     /**
+     * Constructor
+     */
+    public function __construct() {
+        global $DB;
+
+        parent::__construct();
+
+        // For cycle items, the parentid is the cycleid, so we need to get the versionid from the cycle.
+        if (empty($this->parentid)) {
+            if (empty($this->id)) {
+                throw new \moodle_exception('error_invalidid', 'local_curriculum');
+            }
+            $cycleid = $DB->get_field('local_curriculum_cycle_items', 'cycleid', ['id' => $this->id], MUST_EXIST);
+            $this->parentid = $cycleid;
+        }
+    }
+
+    /**
      * Get page title.
      *
      * @return string
@@ -195,7 +213,7 @@ class cycle_item extends managepage {
                     'get'
                 );
 
-                $params = ['ptype' => cycle::PAGEKEY, 'parentid' => $this->parentid];
+                $params = ['ptype' => cycle::PAGEKEY, 'id' => $this->parentid];
                 $backbuttonurl = new \moodle_url('/local/curriculum/manage.php', $params);
 
                 echo $OUTPUT->single_button(
