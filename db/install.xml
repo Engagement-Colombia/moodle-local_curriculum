@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/curriculum/db" VERSION="20240208" COMMENT="XMLDB file for Moodle local_curriculum"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_curriculum_programs" COMMENT="Stores curriculum programs">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" COMMENT="Program name"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" COMMENT="Program description"/>
+        <FIELD NAME="descriptionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" COMMENT="Format of the description field"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" COMMENT="Status: 0 disabled, 1 enabled"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Creation timestamp"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Last modification timestamp"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="local_curriculum_versions" COMMENT="Versions of a curriculum program">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="programid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to local_curriculum_programs"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" COMMENT="Version name"/>
+        <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Start timestamp"/>
+        <FIELD NAME="enddate" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="End timestamp, optional"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_program" TYPE="foreign" FIELDS="programid" REFTABLE="local_curriculum_programs" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="local_curriculum_cycles" COMMENT="Cycles within a curriculum version">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="versionid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to local_curriculum_versions"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" COMMENT="Cycle name"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" COMMENT="Cycle description"/>
+        <FIELD NAME="descriptionformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" COMMENT="Format of the description field"/>
+        <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Duration in days"/>
+        <FIELD NAME="stage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" COMMENT="Level or order"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_version" TYPE="foreign" FIELDS="versionid" REFTABLE="local_curriculum_versions" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="local_curriculum_cycle_items" COMMENT="Items (courses) in a cycle">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="cycleid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to local_curriculum_cycles"/>
+        <FIELD NAME="coursecode" TYPE="char" LENGTH="255" NOTNULL="true" COMMENT="Course shortname prefix or code pattern"/>
+        <FIELD NAME="grouptemplate" TYPE="char" LENGTH="255" NOTNULL="false" COMMENT="Group template name"/>
+        <FIELD NAME="conditions" TYPE="text" NOTNULL="false" COMMENT="JSON conditions for enrollment"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_cycle" TYPE="foreign" FIELDS="cycleid" REFTABLE="local_curriculum_cycles" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="local_curriculum_cycle_users" COMMENT="User progress in cycles">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="cycleid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to local_curriculum_cycles"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to user table"/>
+        <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Start timestamp for user"/>
+        <FIELD NAME="timeend" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="Completion timestamp, if completed"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_cycleusers_cycle" TYPE="foreign" FIELDS="cycleid" REFTABLE="local_curriculum_cycles" REFFIELDS="id"/>
+        <KEY NAME="fk_cycleusers_user" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+         <INDEX NAME="user_cycle_idx" UNIQUE="false" FIELDS="userid, cycleid" COMMENT="Index for quick lookup of user cycles"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
