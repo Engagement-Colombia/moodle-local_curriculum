@@ -27,7 +27,9 @@ namespace local_curriculum\reportbuilder\local\entities;
 use core_reportbuilder\local\entities\base;
 use core_reportbuilder\local\report\column;
 use core_reportbuilder\local\report\filter;
+use core_reportbuilder\local\helpers\format;
 use core_reportbuilder\local\filters\text;
+use core_reportbuilder\local\filters\number;
 use lang_string;
 use context_system;
 
@@ -69,13 +71,23 @@ class cycle extends base {
             $this->add_column($column);
         }
 
+        $cyclealias = $this->get_table_alias('local_curriculum_cycles');
+
         // Filters.
         $this->add_filter((new filter(
             text::class,
             'name',
             new lang_string('name'),
             $this->get_entity_name(),
-            "{$this->get_table_alias('local_curriculum_cycles')}.name"
+            "{$cyclealias}.name"
+        )));
+
+        $this->add_filter((new filter(
+            number::class,
+            'stage',
+            new lang_string('stage', 'local_curriculum'),
+            $this->get_entity_name(),
+            "{$cyclealias}.stage"
         )));
 
         return $this;
@@ -89,6 +101,26 @@ class cycle extends base {
     protected function get_all_columns(): array {
         $columns = [];
         $cyclealias = $this->get_table_alias('local_curriculum_cycles');
+
+        // ID.
+        $columns[] = (new column(
+            'id',
+            new lang_string('id', 'local_curriculum'),
+            $this->get_entity_name()
+        ))
+        ->add_fields("{$cyclealias}.id")
+        ->set_is_sortable(true)
+        ->set_type(column::TYPE_INTEGER);
+
+        // Version ID.
+        $columns[] = (new column(
+            'versionid',
+            null,
+            $this->get_entity_name()
+        ))
+        ->add_fields("{$cyclealias}.versionid")
+        ->set_is_sortable(true)
+        ->set_type(column::TYPE_INTEGER);
 
         // Name.
         $columns[] = (new column(
@@ -113,13 +145,13 @@ class cycle extends base {
             return format_text($value, FORMAT_MOODLE, ['context' => context_system::instance()]);
         });
 
-        // Duration days.
+        // Duration.
         $columns[] = (new column(
-            'durationdays',
+            'duration',
             new lang_string('durationdays', 'local_curriculum'),
             $this->get_entity_name()
         ))
-        ->add_fields("{$cyclealias}.durationdays")
+        ->add_fields("{$cyclealias}.duration")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
 
@@ -132,6 +164,16 @@ class cycle extends base {
         ->add_fields("{$cyclealias}.stage")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
+
+        // Item count.
+        $columns[] = (new column(
+            'itemcount',
+            new lang_string('itemcount', 'local_curriculum'),
+            $this->get_entity_name()
+        ))
+        ->add_field("(SELECT COUNT(1) FROM {local_curriculum_cycle_items} ci WHERE ci.cycleid = {$cyclealias}.id)", 'itemcount')
+        ->set_type(column::TYPE_INTEGER)
+        ->set_is_sortable(true);
 
         return $columns;
     }

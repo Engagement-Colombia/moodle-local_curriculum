@@ -30,9 +30,9 @@ admin_externalpage_setup('local_curriculum_manage');
 $context = context_system::instance();
 require_capability('local/curriculum:manage', $context);
 
-$ptype = optional_param('ptype', 'program', PARAM_ALPHA);
+$ptype = optional_param('ptype', 'program', PARAM_ALPHANUMEXT);
 
-if (!in_array($ptype, ['program', 'version', 'cycle', 'item'])) {
+if (!in_array($ptype, ['program', 'version', 'cycle', 'cycle_item'])) {
     throw new moodle_exception('error_invalidpage', 'local_curriculum');
 }
 

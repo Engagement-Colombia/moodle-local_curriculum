@@ -15,18 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for Curriculum
+ * TODO describe file tree
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+require('../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
 
-$plugin->component    = 'local_curriculum';
-$plugin->release      = '1.0';
-$plugin->version      = 2026020800.09;
-$plugin->requires     = 2024100700;
-$plugin->supported    = [405, 501];
-$plugin->maturity     = MATURITY_STABLE;
+admin_externalpage_setup('local_curriculum_manage');
+
+$context = context_system::instance();
+require_capability('local/curriculum:manage', $context);
+
+$url = new moodle_url('/local/curriculum/tree.php', []);
+$PAGE->set_url($url);
+$PAGE->set_context(context_system::instance());
+
+$PAGE->set_heading($SITE->fullname);
+echo $OUTPUT->header();
+echo $OUTPUT->footer();

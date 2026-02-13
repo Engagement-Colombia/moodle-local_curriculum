@@ -17,32 +17,22 @@
 namespace local_curriculum\local\pages;
 
 use core_reportbuilder\system_report_factory;
-use local_curriculum\reportbuilder\local\systemreports\items as itemsreport;
+use local_curriculum\reportbuilder\local\systemreports\cycle_items as cycleitemsreport;
+use local_curriculum\local\controller;
 
 /**
- * Class item
+ * Class cycle_item
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class item extends managepage {
+class cycle_item extends managepage {
     /**
      * Page key identifier.
      * @var string
      */
-    public const PAGEKEY = 'item';
-
-    /**
-     * Item constructor.
-     */
-    public function __construct() {
-        parent::__construct();
-
-        if (empty($this->parentid) && empty($this->id) && $this->action !== 'delete') {
-            throw new \moodle_exception('error_invalidparentid', 'local_curriculum');
-        }
-    }
+    public const PAGEKEY = 'cycle_item';
 
     /**
      * Get page title.
@@ -56,18 +46,12 @@ class item extends managepage {
     /**
      * Get the manage title for the page.
      *
-     * @param int $id
      * @return string
      */
-    public function get_managetitle(int $id): string {
+    public function get_managetitle(): string {
         global $DB;
-
-        // Items might not have a name column, let's check item_form or entity.
-        // item_form has 'coursecode' and 'grouptemplate'.
-        // entity has 'coursecode' and 'grouptemplate'.
-        // Let's use coursecode as title.
-        $item = $DB->get_field('local_curriculum_items', 'coursecode', ['id' => $id], MUST_EXIST);
-        return get_string('manage_' . self::PAGEKEY, 'local_curriculum') . ': ' . format_string($item);
+        $cycle = $DB->get_field('local_curriculum_cycles', 'name', ['id' => $this->parentid], MUST_EXIST);
+        return get_string('manage_item', 'local_curriculum') . ': ' . format_string($cycle);
     }
 
     /**
@@ -80,65 +64,83 @@ class item extends managepage {
 
         switch ($this->action) {
             case 'add':
-                $form = new \local_curriculum\form\item_form(null, ['context' => $context]);
+                $form = new \local_curriculum\form\cycle_item_form(null, ['context' => $context]);
+                $cycleid = $this->parentid;
                 if ($form->is_cancelled()) {
-                    $cycleid = $this->parentid;
-                    if (!$cycleid && $this->id) {
-                        $cycleid = $DB->get_field('local_curriculum_items', 'cycleid', ['id' => $this->id]);
+                    if (!$cycleid) {
+                        if (empty($this->id)) {
+                            throw new \moodle_exception('error_invalidid', 'local_curriculum');
+                        }
+                        $cycleid = $DB->get_field('local_curriculum_cycle_items', 'cycleid', ['id' => $this->id]);
                     }
-                    $redirecturl = new \moodle_url('/local/curriculum/manage.php', ['ptype' => self::PAGEKEY, 'parentid' => $cycleid]);
+                    $redirecturl = new \moodle_url(
+                        '/local/curriculum/manage.php',
+                        ['ptype' => self::PAGEKEY, 'parentid' => $cycleid]
+                    );
                     redirect($redirecturl);
 
                 } else if ($data = $form->get_data()) {
                     $record = new \stdClass();
                     $record->coursecode = trim($data->coursecode);
-                    $record->grouptemplate = trim($data->grouptemplate);
-                    $record->conditions = $data->conditions;
+                    $record->grouptemplate = !empty($data->grouptemplate) ? trim($data->grouptemplate) : null;
+                    $record->conditions = !empty($data->conditions) ? trim($data->conditions) : null;
+                    $record->validity = $data->validity ?? 0;
                     $record->cycleid = $data->cycleid;
-                    $record->timemodified = time();
 
                     if (!empty($data->id)) {
                         $record->id = $data->id;
-                        $DB->update_record('local_curriculum_items', $record);
+                        $DB->update_record('local_curriculum_cycle_items', $record);
                         $itemid = $data->id;
                         $created = false;
                     } else {
-                        $record->timecreated = time();
-                        $itemid = $DB->insert_record('local_curriculum_items', $record);
+                        $itemid = $DB->insert_record('local_curriculum_cycle_items', $record);
                         $created = true;
                     }
 
                     if ($created) {
-                        \local_curriculum\event\item_created::create([
+                        \local_curriculum\event\cycle_item_created::create([
                             'objectid' => $itemid,
                             'context' => $context,
                         ])->trigger();
                     } else {
-                        \local_curriculum\event\item_updated::create([
+                        \local_curriculum\event\cycle_item_updated::create([
                             'objectid' => $itemid,
                             'context' => $context,
                         ])->trigger();
                     }
 
                     // Redirect back to the item list.
-                    $redirecturl = new \moodle_url('/local/curriculum/manage.php', ['ptype' => self::PAGEKEY, 'parentid' => $record->cycleid]);
+                    $redirecturl = new \moodle_url(
+                        '/local/curriculum/manage.php',
+                        [
+                            'ptype' => self::PAGEKEY,
+                            'parentid' => $record->cycleid,
+                        ]
+                    );
                     redirect($redirecturl);
                 }
                 break;
             case 'delete':
                 $id = required_param('id', PARAM_INT);
-                $item = $DB->get_record('local_curriculum_items', ['id' => $id], '*', MUST_EXIST);
+                $item = $DB->get_record('local_curriculum_cycle_items', ['id' => $id], '*', MUST_EXIST);
 
-                // No child dependencies check for items.
+                // Check if item has users linked to it.
+                $userslinked = $DB->record_exists('local_curriculum_cycle_users', ['cycleid' => $item->cycleid]);
+                if ($userslinked) {
+                    throw new \moodle_exception('error_cannotdeleteitem', 'local_curriculum');
+                }
 
-                $DB->delete_records('local_curriculum_items', ['id' => $id]);
+                $DB->delete_records('local_curriculum_cycle_items', ['id' => $id]);
 
-                \local_curriculum\event\item_deleted::create([
+                \local_curriculum\event\cycle_item_deleted::create([
                     'objectid' => $id,
                     'context' => $context,
                 ])->trigger();
 
-                $redirecturl = new \moodle_url('/local/curriculum/manage.php', ['ptype' => self::PAGEKEY, 'parentid' => $item->cycleid]);
+                $redirecturl = new \moodle_url(
+                    '/local/curriculum/manage.php',
+                    ['ptype' => self::PAGEKEY, 'parentid' => $item->cycleid]
+                );
                 redirect($redirecturl);
                 break;
         }
@@ -155,15 +157,15 @@ class item extends managepage {
         switch ($this->action) {
             case 'add':
             case 'edit':
-                $id = null;
-                if ($this->action === 'edit') {
-                    $id = required_param('id', PARAM_INT);
+                $id = $this->id;
+                if ($this->action === 'edit' && !$id) {
+                    throw new \moodle_exception('error_invalidid', 'local_curriculum');
                 }
 
-                $form = new \local_curriculum\form\item_form(null, ['context' => $context]);
+                $form = new \local_curriculum\form\cycle_item_form(null, ['context' => $context]);
 
                 if ($id) {
-                    $record = $DB->get_record('local_curriculum_items', ['id' => $id], '*', MUST_EXIST);
+                    $record = $DB->get_record('local_curriculum_cycle_items', ['id' => $id], '*', MUST_EXIST);
                     $form->set_data($record);
                 } else {
                     $data = new \stdClass();
@@ -174,7 +176,14 @@ class item extends managepage {
                 echo $form->render();
                 break;
             default:
-                $report = system_report_factory::create(itemsreport::class, $context, '', '', 0, ['cycleid' => $this->parentid]);
+                $report = system_report_factory::create(
+                    cycleitemsreport::class,
+                    $context,
+                    '',
+                    '',
+                    0,
+                    ['cycleid' => $this->parentid]
+                );
                 echo $report->output();
 
                 $params = ['action' => 'add', 'ptype' => self::PAGEKEY, 'parentid' => $this->parentid];
@@ -186,7 +195,7 @@ class item extends managepage {
                     'get'
                 );
 
-                $params = ['ptype' => cycle::PAGEKEY, 'id' => $this->parentid];
+                $params = ['ptype' => cycle::PAGEKEY, 'parentid' => $this->parentid];
                 $backbuttonurl = new \moodle_url('/local/curriculum/manage.php', $params);
 
                 echo $OUTPUT->single_button(

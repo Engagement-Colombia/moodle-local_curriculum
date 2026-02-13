@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe file settings
+ * Admin settings for local_curriculum plugin.
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
@@ -25,12 +25,33 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
+    // Create curriculum section under Courses.
     $ADMIN->add(
-        'localplugins',
+        'courses',
+        new admin_category(
+            'local_curriculum',
+            new lang_string('pluginname', 'local_curriculum')
+        )
+    );
+
+    // Add manage page.
+    $ADMIN->add(
+        'local_curriculum',
         new admin_externalpage(
             'local_curriculum_manage',
-            new lang_string('pluginname', 'local_curriculum'),
+            new lang_string('manage_title', 'local_curriculum'),
             new moodle_url('/local/curriculum/manage.php'),
+            'local/curriculum:manage'
+        )
+    );
+
+    // Add tree page.
+    $ADMIN->add(
+        'local_curriculum',
+        new admin_externalpage(
+            'local_curriculum_tree',
+            new lang_string('tree_title', 'local_curriculum'),
+            new moodle_url('/local/curriculum/tree.php'),
             'local/curriculum:manage'
         )
     );

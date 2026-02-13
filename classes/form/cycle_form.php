@@ -31,21 +31,21 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Cycle form class
+ * Form for adding/editing a cycle
  *
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cycle_form extends moodleform {
     /**
-     * Definition of the form
+     * Form definition
      */
     public function definition() {
         $mform = $this->_form;
 
         $mform->addElement('header', 'general', get_string('cycle', 'local_curriculum'));
 
-        $mform->addElement('text', 'name', get_string('name'), ['maxlength' => '255']);
+        $mform->addElement('text', 'name', get_string('name'), ['size' => '50']);
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
@@ -53,24 +53,22 @@ class cycle_form extends moodleform {
         $mform->addElement('editor', 'description_editor', get_string('description'), null, $editoroptions);
         $mform->setType('description_editor', PARAM_RAW);
 
-        $mform->addElement('text', 'durationdays', get_string('durationdays', 'local_curriculum'));
-        $mform->setType('durationdays', PARAM_INT);
-        $mform->setDefault('durationdays', 0);
-        $mform->addRule('durationdays', null, 'numeric', null, 'client');
+        $mform->addElement('text', 'duration', get_string('durationdays', 'local_curriculum'), ['size' => '10']);
+        $mform->setType('duration', PARAM_INT);
+        $mform->setDefault('duration', 0);
 
-        $mform->addElement('text', 'stage', get_string('stage', 'local_curriculum'));
+        $mform->addElement('text', 'stage', get_string('stage', 'local_curriculum'), ['size' => '10']);
         $mform->setType('stage', PARAM_INT);
         $mform->setDefault('stage', 1);
-        $mform->addRule('stage', null, 'numeric', null, 'client');
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
-        $mform->addElement('hidden', 'parentid');
-        $mform->setType('parentid', PARAM_INT);
+        $mform->addElement('hidden', 'versionid');
+        $mform->setType('versionid', PARAM_INT);
 
         $mform->addElement('hidden', 'ptype', \local_curriculum\local\pages\cycle::PAGEKEY);
-        $mform->setType('ptype', PARAM_ALPHANUMEXT);
+        $mform->setType('ptype', PARAM_ALPHANUM);
 
         $mform->addElement('hidden', 'action', 'add');
         $mform->setType('action', PARAM_TEXT);

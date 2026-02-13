@@ -50,8 +50,8 @@ class version extends managepage {
      */
     public function get_managetitle(): string {
         global $DB;
-        $version = $DB->get_field('local_curriculum_versions', 'name', ['id' => $this->parentid], MUST_EXIST);
-        return get_string('manage_' . self::PAGEKEY, 'local_curriculum') . ': ' . format_string($version);
+        $program = $DB->get_field('local_curriculum_programs', 'name', ['id' => $this->parentid], MUST_EXIST);
+        return get_string('manage_' . self::PAGEKEY, 'local_curriculum') . ': ' . format_string($program);
     }
 
     /**

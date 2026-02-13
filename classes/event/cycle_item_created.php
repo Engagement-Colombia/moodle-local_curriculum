@@ -14,23 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace local_curriculum\event;
-
 /**
- * Event item_deleted
+ * Cycle item created event
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class item_deleted extends \core\event\base {
+
+namespace local_curriculum\event;
+
+/**
+ * Event for when a cycle item is created
+ *
+ * @package    local_curriculum
+ * @copyright  2026 David Herney @ BambuCo
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class cycle_item_created extends \core\event\base {
     /**
-     * Set basic properties for the event.
+     * Initialises the event data.
      */
     protected function init() {
-        $this->data['objecttable'] = 'local_curriculum_items';
-        $this->data['crud'] = 'd';
+        $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['objecttable'] = 'local_curriculum_cycle_items';
     }
 
     /**
@@ -39,7 +47,7 @@ class item_deleted extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventitem_deleted', 'local_curriculum');
+        return get_string('eventitem_created', 'local_curriculum');
     }
 
     /**
@@ -48,7 +56,7 @@ class item_deleted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The user with id '$this->userid' deleted the item with id '$this->objectid'.";
+        return "The user with id '$this->userid' created the cycle item with id '$this->objectid'.";
     }
 
     /**
@@ -57,6 +65,6 @@ class item_deleted extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/local/curriculum/manage.php');
+        return new \moodle_url('/local/curriculum/manage.php', ['id' => $this->objectid, 'action' => 'edit']);
     }
 }

@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Cycle deleted event
+ *
+ * @package    local_curriculum
+ * @copyright  2026 David Herney @ BambuCo
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace local_curriculum\event;
 
 /**
- * Event cycle_deleted
+ * Event for when a cycle is deleted
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
@@ -25,12 +33,12 @@ namespace local_curriculum\event;
  */
 class cycle_deleted extends \core\event\base {
     /**
-     * Set basic properties for the event.
+     * Initialises the event data.
      */
     protected function init() {
-        $this->data['objecttable'] = 'local_curriculum_cycles';
         $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['objecttable'] = 'local_curriculum_cycles';
     }
 
     /**

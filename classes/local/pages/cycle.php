@@ -35,17 +35,6 @@ class cycle extends managepage {
     public const PAGEKEY = 'cycle';
 
     /**
-     * Cycle constructor.
-     */
-    public function __construct() {
-        parent::__construct();
-
-        if (empty($this->parentid) && empty($this->id) && $this->action !== 'delete') {
-            throw new \moodle_exception('error_invalidparentid', 'local_curriculum');
-        }
-    }
-
-    /**
      * Get page title.
      *
      * @return string
@@ -61,8 +50,8 @@ class cycle extends managepage {
      */
     public function get_managetitle(): string {
         global $DB;
-        $cycle = $DB->get_field('local_curriculum_cycles', 'name', ['id' => $this->parentid], MUST_EXIST);
-        return get_string('manage_' . self::PAGEKEY, 'local_curriculum') . ': ' . format_string($cycle);
+        $version = $DB->get_field('local_curriculum_versions', 'name', ['id' => $this->parentid], MUST_EXIST);
+        return get_string('manage_cycle', 'local_curriculum') . ': ' . format_string($version);
     }
 
     /**
@@ -76,21 +65,26 @@ class cycle extends managepage {
         switch ($this->action) {
             case 'add':
                 $form = new \local_curriculum\form\cycle_form(null, ['context' => $context]);
+                $versionid = $this->parentid;
                 if ($form->is_cancelled()) {
-                     $versionid = $this->parentid;
-                    if (!$versionid && $this->id) {
+                    if (!$versionid) {
+                        if (empty($this->id)) {
+                            throw new \moodle_exception('error_invalidid', 'local_curriculum');
+                        }
                         $versionid = $DB->get_field('local_curriculum_cycles', 'versionid', ['id' => $this->id]);
                     }
-                    $redirecturl = new \moodle_url('/local/curriculum/manage.php', ['ptype' => self::PAGEKEY, 'parentid' => $versionid]);
+                    $redirecturl = new \moodle_url(
+                        '/local/curriculum/manage.php',
+                        ['ptype' => self::PAGEKEY, 'parentid' => $versionid]
+                    );
                     redirect($redirecturl);
 
                 } else if ($data = $form->get_data()) {
                     $record = new \stdClass();
                     $record->name = trim($data->name);
-                    $record->durationdays = $data->durationdays;
-                    $record->stage = $data->stage;
+                    $record->duration = $data->duration ?? 0;
+                    $record->stage = $data->stage ?? 1;
                     $record->versionid = $data->versionid;
-                    $record->timemodified = time();
 
                     if (!empty($data->id)) {
                         $record->id = $data->id;
@@ -98,7 +92,6 @@ class cycle extends managepage {
                         $cycleid = $data->id;
                         $created = false;
                     } else {
-                        $record->timecreated = time();
                         $cycleid = $DB->insert_record('local_curriculum_cycles', $record);
                         $created = true;
                     }
@@ -135,7 +128,13 @@ class cycle extends managepage {
                     }
 
                     // Redirect back to the cycle list.
-                    $redirecturl = new \moodle_url('/local/curriculum/manage.php', ['ptype' => self::PAGEKEY, 'parentid' => $record->versionid]);
+                    $redirecturl = new \moodle_url(
+                        '/local/curriculum/manage.php',
+                        [
+                            'ptype' => self::PAGEKEY,
+                            'parentid' => $record->versionid,
+                        ]
+                    );
                     redirect($redirecturl);
                 }
                 break;
@@ -144,7 +143,7 @@ class cycle extends managepage {
                 $cycle = $DB->get_record('local_curriculum_cycles', ['id' => $id], '*', MUST_EXIST);
 
                 // Check items.
-                $itemslinked = $DB->record_exists('local_curriculum_items', ['cycleid' => $cycle->id]);
+                $itemslinked = $DB->record_exists('local_curriculum_cycle_items', ['cycleid' => $cycle->id]);
                 if ($itemslinked) {
                     throw new \moodle_exception('error_cannotdeletecycle', 'local_curriculum');
                 }
@@ -158,7 +157,10 @@ class cycle extends managepage {
                     'context' => $context,
                 ])->trigger();
 
-                $redirecturl = new \moodle_url('/local/curriculum/manage.php', ['ptype' => self::PAGEKEY, 'parentid' => $cycle->versionid]);
+                $redirecturl = new \moodle_url(
+                    '/local/curriculum/manage.php',
+                    ['ptype' => self::PAGEKEY, 'parentid' => $cycle->versionid]
+                );
                 redirect($redirecturl);
                 break;
         }
@@ -175,9 +177,9 @@ class cycle extends managepage {
         switch ($this->action) {
             case 'add':
             case 'edit':
-                $id = null;
-                if ($this->action === 'edit') {
-                    $id = required_param('id', PARAM_INT);
+                $id = $this->id;
+                if ($this->action === 'edit' && !$id) {
+                    throw new \moodle_exception('error_invalidid', 'local_curriculum');
                 }
 
                 $form = new \local_curriculum\form\cycle_form(null, ['context' => $context]);
@@ -204,7 +206,14 @@ class cycle extends managepage {
                 echo $form->render();
                 break;
             default:
-                $report = system_report_factory::create(cyclesreport::class, $context, '', '', 0, ['versionid' => $this->parentid]);
+                $report = system_report_factory::create(
+                    cyclesreport::class,
+                    $context,
+                    '',
+                    '',
+                    0,
+                    ['versionid' => $this->parentid]
+                );
                 echo $report->output();
 
                 $params = ['action' => 'add', 'ptype' => self::PAGEKEY, 'parentid' => $this->parentid];
@@ -216,7 +225,7 @@ class cycle extends managepage {
                     'get'
                 );
 
-                $params = ['ptype' => version::PAGEKEY, 'id' => $this->parentid];
+                $params = ['ptype' => version::PAGEKEY, 'parentid' => $this->parentid];
                 $backbuttonurl = new \moodle_url('/local/curriculum/manage.php', $params);
 
                 echo $OUTPUT->single_button(

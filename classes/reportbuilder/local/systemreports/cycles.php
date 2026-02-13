@@ -27,6 +27,7 @@ namespace local_curriculum\reportbuilder\local\systemreports;
 use core_reportbuilder\system_report;
 use core_reportbuilder\local\report\action;
 use local_curriculum\reportbuilder\local\entities\cycle;
+use local_curriculum\local\pages\cycle as cyclepage;
 use moodle_url;
 use pix_icon;
 use context_system;
@@ -52,26 +53,42 @@ class cycles extends system_report {
         // We need to ensure page context is always set, as required by output and string formatting.
         $PAGE->set_context($this->get_context());
 
+        $this->set_default_no_results_notice(new lang_string('nocycles', 'local_curriculum'));
+
         // Our main entity, it contains all of the column definitions that we need.
         $entity = new cycle();
-        $cyclealias = $entity->get_table_alias('local_curriculum_cycles');
+        $entitymainalias = $entity->get_table_alias('local_curriculum_cycles');
 
-        $this->set_main_table('local_curriculum_cycles', $cyclealias);
+        $this->set_main_table('local_curriculum_cycles', $entitymainalias);
         $this->add_entity($entity);
+        $this->add_base_fields("{$entitymainalias}.id");
+        $this->add_base_fields("{$entitymainalias}.versionid");
 
-        // Filter by version ID.
-        $this->add_base_condition_simple("{$cyclealias}.versionid", $this->get_parameter('versionid', 0, PARAM_INT));
+        // Filter by version ID (essential for the master-detail view).
+        $this->add_base_condition_simple("{$entitymainalias}.versionid", $this->get_parameter('versionid', 0, PARAM_INT));
 
         $this->add_columns_from_entities([
             'cycle:name',
+            'cycle:duration',
+            'cycle:stage',
             'cycle:description',
-            'cycle:durationdays',
-            'cycle:stage'
+            'cycle:itemcount',
         ]);
 
         $this->add_filters_from_entities([
-            'cycle:name'
+            'cycle:name',
+            'cycle:stage',
         ]);
+
+        // Action: Manage Items.
+        $this->add_action(new action(
+            new moodle_url('/local/curriculum/manage.php', [
+                'parentid' => ':id',
+                'ptype' => \local_curriculum\local\pages\cycle_item::PAGEKEY,
+            ]),
+            new pix_icon('i/settings', get_string('manageitems', 'local_curriculum')),
+            []
+        ));
 
         // Action: Edit.
         $this->add_action(new action(
@@ -79,23 +96,30 @@ class cycles extends system_report {
                 'id' => ':id',
                 'action' => 'edit',
                 'ptype' => 'cycle',
-                'versionid' => ':versionid'
+                'parentid' => ':versionid',
             ]),
             new pix_icon('t/edit', get_string('edit')),
-            [],
-            true
+            []
         ));
 
-        // Action: Manage Items.
-        $this->add_action(new action(
-            new moodle_url('/local/curriculum/manage.php', [
-                'parentid' => ':id',
-                'ptype' => 'item'
-            ]),
-            new pix_icon('i/grades', get_string('manageitems', 'local_curriculum')),
-            [],
-            true
-        ));
+        // Delete.
+        $deleteaction = new action(
+            new moodle_url('/local/curriculum/manage.php', ['id' => ':id', 'action' => 'delete', 'ptype' => cyclepage::PAGEKEY]),
+            new pix_icon('t/delete', get_string('delete')),
+            [
+                'onclick' => 'return confirm("' . get_string('confirmdeletecycle', 'local_curriculum') . '");',
+                'class' => 'text-danger'
+            ]
+        );
+        $deleteaction->add_callback(function($row) use ($deleteaction) {
+            // Delete action is only available if there are no items.
+            if (!empty($row->itemcount)) {
+                return null;
+            }
+
+            return $deleteaction;
+        });
+        $this->add_action($deleteaction);
     }
 
     /**

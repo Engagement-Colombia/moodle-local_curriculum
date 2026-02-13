@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Item entity
+ * Cycle item entity
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
@@ -28,16 +28,17 @@ use core_reportbuilder\local\entities\base;
 use core_reportbuilder\local\report\column;
 use core_reportbuilder\local\report\filter;
 use core_reportbuilder\local\filters\text;
+use core_reportbuilder\local\filters\number;
 use lang_string;
 
 /**
- * Item entity class
+ * Cycle item entity class
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class item extends base {
+class cycle_item extends base {
 
     /**
      * Database tables that this entity uses
@@ -68,13 +69,31 @@ class item extends base {
             $this->add_column($column);
         }
 
+        $itemaias = $this->get_table_alias('local_curriculum_cycle_items');
+
         // Filters.
         $this->add_filter((new filter(
             text::class,
             'coursecode',
             new lang_string('coursecode', 'local_curriculum'),
             $this->get_entity_name(),
-            "{$this->get_table_alias('local_curriculum_cycle_items')}.coursecode"
+            "{$itemaias}.coursecode"
+        )));
+
+        $this->add_filter((new filter(
+            text::class,
+            'grouptemplate',
+            new lang_string('grouptemplate', 'local_curriculum'),
+            $this->get_entity_name(),
+            "{$itemaias}.grouptemplate"
+        )));
+
+        $this->add_filter((new filter(
+            number::class,
+            'validity',
+            new lang_string('validitydays', 'local_curriculum'),
+            $this->get_entity_name(),
+            "{$itemaias}.validity"
         )));
 
         return $this;
@@ -88,6 +107,26 @@ class item extends base {
     protected function get_all_columns(): array {
         $columns = [];
         $itemalias = $this->get_table_alias('local_curriculum_cycle_items');
+
+        // ID.
+        $columns[] = (new column(
+            'id',
+            new lang_string('id', 'local_curriculum'),
+            $this->get_entity_name()
+        ))
+        ->add_fields("{$itemalias}.id")
+        ->set_is_sortable(true)
+        ->set_type(column::TYPE_INTEGER);
+
+        // Cycle ID.
+        $columns[] = (new column(
+            'cycleid',
+            null,
+            $this->get_entity_name()
+        ))
+        ->add_fields("{$itemalias}.cycleid")
+        ->set_is_sortable(true)
+        ->set_type(column::TYPE_INTEGER);
 
         // Course code.
         $columns[] = (new column(
@@ -118,6 +157,16 @@ class item extends base {
         ->add_fields("{$itemalias}.conditions")
         ->set_is_sortable(false)
         ->set_type(column::TYPE_TEXT);
+
+        // Validity.
+        $columns[] = (new column(
+            'validity',
+            new lang_string('validitydays', 'local_curriculum'),
+            $this->get_entity_name()
+        ))
+        ->add_fields("{$itemalias}.validity")
+        ->set_is_sortable(true)
+        ->set_type(column::TYPE_INTEGER);
 
         return $columns;
     }

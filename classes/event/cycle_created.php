@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Cycle created event
+ *
+ * @package    local_curriculum
+ * @copyright  2026 David Herney @ BambuCo
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace local_curriculum\event;
 
 /**
- * Event cycle_created
+ * Event for when a cycle is created
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
@@ -25,12 +33,12 @@ namespace local_curriculum\event;
  */
 class cycle_created extends \core\event\base {
     /**
-     * Set basic properties for the event.
+     * Initialises the event data.
      */
     protected function init() {
-        $this->data['objecttable'] = 'local_curriculum_cycles';
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['objecttable'] = 'local_curriculum_cycles';
     }
 
     /**
@@ -57,6 +65,6 @@ class cycle_created extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/local/curriculum/manage.php', ['id' => $this->objectid, 'ptype' => 'cycle']);
+        return new \moodle_url('/local/curriculum/manage.php', ['id' => $this->objectid, 'action' => 'edit']);
     }
 }
