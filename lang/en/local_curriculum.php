@@ -96,4 +96,5 @@ $string['versionstitle'] = 'Curriculum versions';
 $string['view_master'] = 'Master view';
 $string['loading'] = 'Loading...';
 $string['noversions'] = 'No versions found';
+$string['task_activateusercycles'] = 'Activate user cycles in curriculum programs';
 $string['view_tree'] = 'Tree view';

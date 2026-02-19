@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for Curriculum
+ * Scheduled tasks definition for local_curriculum.
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
@@ -24,9 +24,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_curriculum';
-$plugin->release = '1.0.02';
-$plugin->version = 2026021901.01;
-$plugin->requires = 2024100700;
-$plugin->supported = [405, 501];
-$plugin->maturity = MATURITY_BETA;
+$tasks = [
+    [
+        'classname' => 'local_curriculum\task\activate_user_cycles',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '1',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*',
+    ],
+];
