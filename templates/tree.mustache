@@ -17,42 +17,21 @@
 {{!
     @template local_curriculum/tree
 
-    Curriculum tree template.
+    Curriculum tree template. Only programs are rendered initially.
+    Children (versions, cycles, items) are loaded on demand via AJAX.
 
     Example context (json):
     {
-        "wwwroot": "http://localhost/moodle",
+        "manageurl": "http://localhost/moodle",
         "programs": [
             {
                 "id": 1,
                 "name": "Program 1",
                 "description": "Description for Program 1",
-                "manageurl": "http://localhost/moodle",
-                "versions": [
+                "customfields": [
                     {
-                        "id": 10,
-                        "name": "Version 1",
-                        "startdate": 1704067200,
-                        "enddate": 1735689600,
-                        "manageurl": "http://localhost/moodle",
-                        "cycles": [
-                            {
-                                "id": 100,
-                                "name": "Cycle 1",
-                                "stage": "Stage 1",
-                                "duration": 30,
-                                "description": "Description for Cycle 1",
-                                "manageurl": "http://localhost/moodle",
-                                "items": [
-                                    {
-                                        "id": 1000,
-                                        "coursecode": "COURSE101",
-                                        "grouptemplate": "Group Template 1",
-                                        "validity": 60
-                                    }
-                                ]
-                            }
-                        ]
+                        "name": "Field 1",
+                        "value": "Value 1"
                     }
                 ]
             }
@@ -69,22 +48,20 @@
         </button>
     </div>
     {{#programs}}
-        <div class="curriculum-tree-node curriculum-tree-program" data-node-id="{{id}}" data-node-type="program">
+        <div class="curriculum-tree-node curriculum-tree-program curriculum-tree-collapsed" data-node-id="{{id}}" data-node-type="program">
             <div class="curriculum-tree-item">
-                <button class="curriculum-tree-toggle" aria-expanded="true" title="{{#str}}collapse{{/str}}"></button>
+                <button class="curriculum-tree-toggle" aria-expanded="false" title="{{#str}}expandall, local_curriculum{{/str}}"></button>
                 <div class="curriculum-tree-content">
                     <span class="curriculum-tree-label">
                         {{name}}
                     </span>
-                    {{#customfields}}
-                        <ul class="curriculum-tree-meta">
-                            {{#customfields}}
-                                {{#value}}
+                    <ul class="curriculum-tree-meta">
+                        {{#customfields}}
+                            {{#value}}
                                 <li><strong>{{name}}</strong><span>{{value}}</span></li>
-                                {{/value}}
-                            {{/customfields}}
-                        </ul>
-                    {{/customfields}}
+                            {{/value}}
+                        {{/customfields}}
+                    </ul>
                     {{#description}}
                         <span class="curriculum-tree-description">{{{description}}}</span>
                     {{/description}}
@@ -95,98 +72,7 @@
                     </a>
                 </div>
             </div>
-
-            {{#versions}}
-                <div class="curriculum-tree-children">
-                    <div class="curriculum-tree-node curriculum-tree-version" data-node-id="{{id}}" data-node-type="version">
-                        <div class="curriculum-tree-item">
-                            <button class="curriculum-tree-toggle" aria-expanded="true" title="{{#str}}collapse{{/str}}"></button>
-                            <div class="curriculum-tree-content">
-                                <span class="curriculum-tree-label">
-                                    {{name}}
-                                </span>
-                                <span class="curriculum-tree-meta">
-                                    {{#startdate}}
-                                        {{#userdate}}{{startdate}}, %d %b %Y{{/userdate}}
-                                    {{/startdate}}
-                                    {{#enddate}}
-                                        - {{#userdate}}{{enddate}}, %d %b %Y{{/userdate}}
-                                    {{/enddate}}
-                                </span>
-                            </div>
-                            <div class="curriculum-tree-actions">
-                                <a class="curriculum-tree-action-link" href="{{manageurl}}/local/curriculum/manage.php?ptype=cycle&parentid={{id}}" title="{{#str}}configure, local_curriculum{{/str}}">
-                                    {{#pix}}a/view_list_active, core{{/pix}}
-                                </a>
-                            </div>
-                        </div>
-
-                        {{#cycles}}
-                            <div class="curriculum-tree-children">
-                                <div class="curriculum-tree-node curriculum-tree-cycle" data-node-id="{{id}}" data-node-type="cycle">
-                                    <div class="curriculum-tree-item">
-                                        <button class="curriculum-tree-toggle" aria-expanded="true" title="{{#str}}collapse{{/str}}"></button>
-                                        <div class="curriculum-tree-content">
-                                            <span class="curriculum-tree-label">
-                                                {{name}}
-                                            </span>
-                                            {{#description}}
-                                                <span class="curriculum-tree-description">{{{description}}}</span>
-                                            {{/description}}
-                                            <span class="curriculum-tree-meta">
-                                                {{#str}}stage, local_curriculum{{/str}}: {{stage}}
-                                                {{#duration}}
-                                                    | {{#str}}durationdays, local_curriculum{{/str}}: {{duration}}
-                                                {{/duration}}
-                                            </span>
-                                        </div>
-                                        <div class="curriculum-tree-actions">
-                                            <a class="curriculum-tree-action-link" href="{{manageurl}}/local/curriculum/manage.php?ptype=cycle_item&parentid={{id}}" title="{{#str}}configure, local_curriculum{{/str}}">
-                                                {{#pix}}a/view_list_active, core{{/pix}}
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    {{#items}}
-                                        <div class="curriculum-tree-children">
-                                            <div class="curriculum-tree-node curriculum-tree-item-leaf" data-node-id="{{id}}" data-node-type="item">
-                                                <div class="curriculum-tree-item">
-                                                    <div class="curriculum-tree-content">
-                                                        <span class="curriculum-tree-label">
-                                                            {{coursecode}}
-                                                        </span>
-                                                        {{#grouptemplate}}
-                                                            <span class="curriculum-tree-description">{{grouptemplate}}</span>
-                                                        {{/grouptemplate}}
-                                                        <span class="curriculum-tree-meta">
-                                                            {{#str}}validitydays, local_curriculum{{/str}}: {{validity}}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {{/items}}
-                                    {{^items}}
-                                        <div class="curriculum-tree-children curriculum-tree-empty">
-                                            <em>{{#str}}noitems, local_curriculum{{/str}}</em>
-                                        </div>
-                                    {{/items}}
-                                </div>
-                            </div>
-                        {{/cycles}}
-                        {{^cycles}}
-                            <div class="curriculum-tree-children curriculum-tree-empty">
-                                <em>{{#str}}nocycles, local_curriculum{{/str}}</em>
-                            </div>
-                        {{/cycles}}
-                    </div>
-                </div>
-            {{/versions}}
-            {{^versions}}
-                <div class="curriculum-tree-children curriculum-tree-empty">
-                    <em>{{#str}}versionstitle, local_curriculum{{/str}}: {{#str}}noprograms, local_curriculum{{/str}}</em>
-                </div>
-            {{/versions}}
+            <div class="curriculum-tree-children" data-loaded="false" style="display: none;"></div>
         </div>
     {{/programs}}
 </div>

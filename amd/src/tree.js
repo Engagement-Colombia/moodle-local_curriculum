@@ -14,14 +14,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Module for managing curriculum tree interactions.
+ * Module for managing curriculum tree interactions with lazy-loading via AJAX.
  *
  * @module     local_curriculum/tree
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['jquery'], function($) {
+define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/str'], function($, Ajax, Templates, Notification, Str) {
     'use strict';
 
     const SELECTOR_TOGGLE = '.curriculum-tree-toggle';
@@ -31,12 +31,80 @@ define(['jquery'], function($) {
     const SELECTOR_COLLAPSE_ALL = '.curriculum-tree-collapse-all';
     const CLASS_COLLAPSED = 'curriculum-tree-collapsed';
 
+    /**
+     * Map of node types to their AJAX configuration.
+     */
+    var NODE_CONFIG = {
+        'program': {
+            ws: 'local_curriculum_get_versions',
+            template: 'local_curriculum/tree_versions',
+            param: 'programid'
+        },
+        'version': {
+            ws: 'local_curriculum_get_cycles',
+            template: 'local_curriculum/tree_cycles',
+            param: 'versionid'
+        },
+        'cycle': {
+            ws: 'local_curriculum_get_items',
+            template: 'local_curriculum/tree_items',
+            param: 'cycleid'
+        }
+    };
+
+    /**
+     * Ordered list of expandable node types for "Expand All".
+     */
+    var EXPANDABLE_TYPES = ['program', 'version', 'cycle'];
+
     return {
+        /**
+         * Pre-loaded strings for partial templates.
+         */
+        strings: {},
+
+        /**
+         * Whether strings have been loaded.
+         */
+        stringsLoaded: null,
+
         /**
          * Initializes tree interactions.
          */
         init: function() {
+            this.loadStrings();
             this.attachEventHandlers();
+        },
+
+        /**
+         * Pre-loads all strings needed by partial templates.
+         */
+        loadStrings: function() {
+            var self = this;
+            this.stringsLoaded = Str.get_strings([
+                {key: 'expandall', component: 'local_curriculum'},
+                {key: 'configure', component: 'local_curriculum'},
+                {key: 'noversions', component: 'local_curriculum'},
+                {key: 'nocycles', component: 'local_curriculum'},
+                {key: 'noitems', component: 'local_curriculum'},
+                {key: 'stage', component: 'local_curriculum'},
+                {key: 'durationdays', component: 'local_curriculum'},
+                {key: 'validitydays', component: 'local_curriculum'},
+                {key: 'loading', component: 'local_curriculum'},
+            ]).then(function(strings) {
+                self.strings = {
+                    expandlabel: strings[0],
+                    configurelabel: strings[1],
+                    noversionslabel: strings[2],
+                    nocycleslabel: strings[3],
+                    noitemslabel: strings[4],
+                    stagelabel: strings[5],
+                    durationlabel: strings[6],
+                    validitylabel: strings[7],
+                    loadinglabel: strings[8],
+                };
+                return self.strings;
+            });
         },
 
         /**
@@ -55,48 +123,167 @@ define(['jquery'], function($) {
          */
         handleToggleClick: function(e) {
             e.preventDefault();
-            const $button = $(e.currentTarget);
-            const $node = $button.closest(SELECTOR_NODE);
-            const $children = $node.children(SELECTOR_CHILDREN);
+            var $button = $(e.currentTarget);
+            var $node = $button.closest(SELECTOR_NODE);
+            var $children = $node.children(SELECTOR_CHILDREN);
 
             if ($children.length === 0) {
                 return;
             }
 
-            const isExpanded = $button.attr('aria-expanded') === 'true';
-            const newState = !isExpanded;
+            var isExpanded = $button.attr('aria-expanded') === 'true';
 
-            $button.attr('aria-expanded', newState.toString());
-
-            if (newState) {
-                $node.removeClass(CLASS_COLLAPSED);
-                $children.slideDown(200);
+            if (isExpanded) {
+                // Collapse.
+                this.collapseNode($button, $node, $children);
             } else {
-                $node.addClass(CLASS_COLLAPSED);
-                $children.slideUp(200);
+                // Expand: load children if not loaded yet.
+                var loaded = $children.attr('data-loaded');
+                if (loaded === 'false') {
+                    this.loadChildren($node, $children);
+                } else {
+                    this.expandNode($button, $node, $children);
+                }
             }
         },
 
         /**
-         * Expands all nodes in the tree.
+         * Expands a node visually.
+         *
+         * @param {jQuery} $button The toggle button.
+         * @param {jQuery} $node The tree node.
+         * @param {jQuery} $children The children container.
+         */
+        expandNode: function($button, $node, $children) {
+            $button.attr('aria-expanded', 'true');
+            $node.removeClass(CLASS_COLLAPSED);
+            $children.slideDown(200);
+        },
+
+        /**
+         * Collapses a node visually.
+         *
+         * @param {jQuery} $button The toggle button.
+         * @param {jQuery} $node The tree node.
+         * @param {jQuery} $children The children container.
+         */
+        collapseNode: function($button, $node, $children) {
+            $button.attr('aria-expanded', 'false');
+            $node.addClass(CLASS_COLLAPSED);
+            $children.slideUp(200);
+        },
+
+        /**
+         * Loads children via AJAX for a given node.
+         *
+         * @param {jQuery} $node The tree node.
+         * @param {jQuery} $container The children container.
+         * @return {Promise} A promise that resolves when children are loaded and rendered.
+         */
+        loadChildren: function($node, $container) {
+            var type = $node.data('node-type');
+            var id = $node.data('node-id');
+            var config = NODE_CONFIG[type];
+
+            if (!config) {
+                return $.Deferred().resolve().promise();
+            }
+
+            // Show loading indicator.
+            var self = this;
+            $container.html('<div class="curriculum-tree-loading p-2 text-muted">' +
+                '<i class="fa fa-spinner fa-spin"></i> ' + (self.strings.loadinglabel || '') + '</div>');
+            $container.show();
+            $node.removeClass(CLASS_COLLAPSED);
+            $node.find('> .curriculum-tree-item > ' + SELECTOR_TOGGLE).attr('aria-expanded', 'true');
+
+            var args = {};
+            args[config.param] = id;
+
+            // Wait for strings to be loaded, then fetch data.
+            return self.stringsLoaded
+                .then(function() {
+                    return Ajax.call([{methodname: config.ws, args: args}])[0];
+                })
+                .then(function(data) {
+                    var context = $.extend({items: data, manageurl: M.cfg.wwwroot}, self.strings);
+                    return Templates.render(config.template, context);
+                })
+                .then(function(html, js) {
+                    $container.html(html);
+                    $container.attr('data-loaded', 'true');
+                    Templates.runTemplateJS(js);
+
+                    // Ensure expanded state.
+                    var $button = $node.find('> .curriculum-tree-item > ' + SELECTOR_TOGGLE);
+                    self.expandNode($button, $node, $container);
+                })
+                .catch(function(ex) {
+                    $container.html('<div class="alert alert-danger p-2">Error loading data.</div>');
+                    Notification.exception(ex);
+                });
+        },
+
+        /**
+         * Loads all unloaded nodes of a specific type.
+         *
+         * @param {jQuery} $tree The tree root element.
+         * @param {string} nodeType The node type to expand (program, version, cycle).
+         * @return {Promise} A promise that resolves when all nodes of this type are loaded.
+         */
+        expandNodesByType: function($tree, nodeType) {
+            var self = this;
+            var promises = [];
+
+            $tree.find('[data-node-type="' + nodeType + '"]').each(function() {
+                var $node = $(this);
+                var $children = $node.children(SELECTOR_CHILDREN);
+
+                if ($children.length === 0) {
+                    return;
+                }
+
+                var loaded = $children.attr('data-loaded');
+                if (loaded === 'false') {
+                    promises.push(self.loadChildren($node, $children));
+                } else {
+                    var $button = $node.find('> .curriculum-tree-item > ' + SELECTOR_TOGGLE);
+                    self.expandNode($button, $node, $children);
+                }
+            });
+
+            if (promises.length === 0) {
+                return $.Deferred().resolve().promise();
+            }
+
+            return $.when.apply($, promises);
+        },
+
+        /**
+         * Expands all nodes in the tree, loading children level by level.
          *
          * @param {Object} e - Event object
          */
         handleExpandAll: function(e) {
             e.preventDefault();
-            const $tree = $(e.currentTarget).closest('.curriculum-tree');
-            const $toggles = $tree.find(SELECTOR_TOGGLE);
+            var $btn = $(e.currentTarget);
+            var $tree = $btn.closest('.curriculum-tree');
+            var self = this;
 
-            $toggles.each((index, toggle) => {
-                const $toggle = $(toggle);
-                const $node = $toggle.closest(SELECTOR_NODE);
-                const $children = $node.children(SELECTOR_CHILDREN);
+            // Disable button during loading.
+            $btn.prop('disabled', true);
 
-                if ($children.length > 0) {
-                    $toggle.attr('aria-expanded', 'true');
-                    $node.removeClass(CLASS_COLLAPSED);
-                    $children.slideDown(200);
-                }
+            // Expand level by level: programs → versions → cycles.
+            var chain = $.Deferred().resolve().promise();
+
+            $.each(EXPANDABLE_TYPES, function(index, type) {
+                chain = chain.then(function() {
+                    return self.expandNodesByType($tree, type);
+                });
+            });
+
+            chain.always(function() {
+                $btn.prop('disabled', false);
             });
         },
 
@@ -107,18 +294,17 @@ define(['jquery'], function($) {
          */
         handleCollapseAll: function(e) {
             e.preventDefault();
-            const $tree = $(e.currentTarget).closest('.curriculum-tree');
-            const $toggles = $tree.find(SELECTOR_TOGGLE);
+            var $tree = $(e.currentTarget).closest('.curriculum-tree');
+            var $toggles = $tree.find(SELECTOR_TOGGLE);
+            var self = this;
 
-            $toggles.each((index, toggle) => {
-                const $toggle = $(toggle);
-                const $node = $toggle.closest(SELECTOR_NODE);
-                const $children = $node.children(SELECTOR_CHILDREN);
+            $toggles.each(function() {
+                var $toggle = $(this);
+                var $node = $toggle.closest(SELECTOR_NODE);
+                var $children = $node.children(SELECTOR_CHILDREN);
 
                 if ($children.length > 0) {
-                    $toggle.attr('aria-expanded', 'false');
-                    $node.addClass(CLASS_COLLAPSED);
-                    $children.slideUp(200);
+                    self.collapseNode($toggle, $node, $children);
                 }
             });
         },

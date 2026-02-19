@@ -1,0 +1,56 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_curriculum/tree_items
+
+    Partial template for item leaf nodes loaded via AJAX.
+    Strings are pre-loaded by JS and passed as context variables.
+
+    Example context (json):
+    {
+        "items": [
+            {
+                "id": 1000,
+                "coursecode": "COURSE101",
+                "grouptemplate": "Group Template 1",
+                "validity": 60
+            }
+        ],
+        "validitylabel": "Validity (days)",
+        "noitemslabel": "No items found"
+    }
+}}
+{{#items}}
+    <div class="curriculum-tree-node curriculum-tree-item-leaf" data-node-id="{{id}}" data-node-type="item">
+        <div class="curriculum-tree-item">
+            <div class="curriculum-tree-content">
+                <span class="curriculum-tree-label">
+                    {{coursecode}}
+                </span>
+                {{#grouptemplate}}
+                    <span class="curriculum-tree-description">{{grouptemplate}}</span>
+                {{/grouptemplate}}
+                <span class="curriculum-tree-meta">
+                    {{validitylabel}}: {{validity}}
+                </span>
+            </div>
+        </div>
+    </div>
+{{/items}}
+{{^items}}
+    <em class="curriculum-tree-empty">{{noitemslabel}}</em>
+{{/items}}

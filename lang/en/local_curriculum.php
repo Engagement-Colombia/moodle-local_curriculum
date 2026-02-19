@@ -94,4 +94,6 @@ $string['version'] = 'Version';
 $string['versioncount'] = 'Versions';
 $string['versionstitle'] = 'Curriculum versions';
 $string['view_master'] = 'Master view';
+$string['loading'] = 'Loading...';
+$string['noversions'] = 'No versions found';
 $string['view_tree'] = 'Tree view';

@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_curriculum';
-$plugin->release = '1.0.01';
-$plugin->version = 2026020801.01;
+$plugin->release = '1.0.02';
+$plugin->version = 2026021901.00;
 $plugin->requires = 2024100700;
 $plugin->supported = [405, 501];
 $plugin->maturity = MATURITY_BETA;

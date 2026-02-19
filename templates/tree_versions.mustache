@@ -1,0 +1,65 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_curriculum/tree_versions
+
+    Partial template for version nodes loaded via AJAX.
+    Strings are pre-loaded by JS and passed as context variables.
+
+    Example context (json):
+    {
+        "items": [
+            {
+                "id": 10,
+                "name": "Version 1",
+                "startdateformatted": "01 Jan 2024",
+                "enddateformatted": "31 Dec 2024"
+            }
+        ],
+        "manageurl": "http://localhost/moodle",
+        "expandlabel": "Expand all",
+        "configurelabel": "Configure",
+        "noversionslabel": "No versions found"
+    }
+}}
+{{#items}}
+    <div class="curriculum-tree-node curriculum-tree-version curriculum-tree-collapsed" data-node-id="{{id}}" data-node-type="version">
+        <div class="curriculum-tree-item">
+            <button class="curriculum-tree-toggle" aria-expanded="false" title="{{expandlabel}}"></button>
+            <div class="curriculum-tree-content">
+                <span class="curriculum-tree-label">
+                    {{name}}
+                </span>
+                <span class="curriculum-tree-meta">
+                    {{startdateformatted}}
+                    {{#enddateformatted}}
+                        - {{enddateformatted}}
+                    {{/enddateformatted}}
+                </span>
+            </div>
+            <div class="curriculum-tree-actions">
+                <a class="curriculum-tree-action-link" href="{{manageurl}}/local/curriculum/manage.php?ptype=cycle&parentid={{id}}" title="{{configurelabel}}">
+                    {{#pix}}a/view_list_active, core{{/pix}}
+                </a>
+            </div>
+        </div>
+        <div class="curriculum-tree-children" data-loaded="false" style="display: none;"></div>
+    </div>
+{{/items}}
+{{^items}}
+    <em class="curriculum-tree-empty">{{noversionslabel}}</em>
+{{/items}}
