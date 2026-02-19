@@ -76,6 +76,15 @@
                     <span class="curriculum-tree-label">
                         {{name}}
                     </span>
+                    {{#customfields}}
+                        <ul class="curriculum-tree-meta">
+                            {{#customfields}}
+                                {{#value}}
+                                <li><strong>{{name}}</strong><span>{{value}}</span></li>
+                                {{/value}}
+                            {{/customfields}}
+                        </ul>
+                    {{/customfields}}
                     {{#description}}
                         <span class="curriculum-tree-description">{{{description}}}</span>
                     {{/description}}

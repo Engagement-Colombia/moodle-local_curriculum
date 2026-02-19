@@ -52,8 +52,22 @@ if (empty($programs)) {
     $cycles = $DB->get_records('local_curriculum_cycles', [], 'stage ASC, name ASC');
     $items = $DB->get_records('local_curriculum_cycle_items', [], 'id ASC');
 
+    $handler = \local_curriculum\customfield\program_handler::create();
     foreach ($programs as $program) {
         $program->versions = [];
+
+        // Load custom fields for the program.
+        $fields = $handler->get_editable_fields($program->id);
+        $fielddata = \core_customfield\api::get_instance_fields_data($fields, $program->id);
+
+        $program->customfields = [];
+        foreach ($fielddata as $data) {
+            $program->customfields[] = [
+                'name' => $data->get_field()->get('name'),
+                'value' => $data->export_value()
+            ];
+        }
+
         $treedata[$program->id] = $program;
     }
 
