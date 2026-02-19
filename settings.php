@@ -34,6 +34,17 @@ if ($hassiteconfig) {
         )
     );
 
+    // Add custom fields configuration page.
+    $ADMIN->add(
+        'local_curriculum',
+        new admin_externalpage(
+            'local_curriculum_customfield',
+            new lang_string('customfieldtitle', 'local_curriculum'),
+            new moodle_url('/local/curriculum/customfield.php'),
+            'local/curriculum:configurecustomfields'
+        )
+    );
+
     // Add manage page.
     $ADMIN->add(
         'local_curriculum',

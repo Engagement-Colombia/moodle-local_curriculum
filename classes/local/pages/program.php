@@ -62,7 +62,7 @@ class program extends managepage {
 
         switch ($this->action) {
             case 'add':
-                $form = new \local_curriculum\form\program_form(null, ['context' => $context]);
+                $form = new \local_curriculum\form\program_form(null, ['context' => $context, 'id' => $this->id]);
                 if ($form->is_cancelled()) {
                     // Redirect back to the program list.
                     $redirecturl = new \moodle_url('/local/curriculum/manage.php', ['ptype' => self::PAGEKEY]);
@@ -102,6 +102,10 @@ class program extends managepage {
                     $update->description = $data->description;
                     $update->descriptionformat = $data->descriptionformat ?? FORMAT_HTML;
                     $DB->update_record('local_curriculum_programs', $update);
+
+                    // Save custom field data.
+                    $handler = \local_curriculum\customfield\program_handler::create();
+                    $handler->instance_form_save($data);
 
                     if ($created) {
                         \local_curriculum\event\program_created::create([
@@ -159,12 +163,12 @@ class program extends managepage {
         switch ($this->action) {
             case 'add':
             case 'edit':
-                $id = null;
-                if ($this->action === 'edit') {
-                    $id = required_param('id', PARAM_INT);
+                $id = $this->id;
+                if ($this->action === 'edit' && empty($id)) {
+                    throw new \moodle_exception('error_invalidid', 'local_curriculum');
                 }
 
-                $form = new \local_curriculum\form\program_form(null, ['context' => $context]);
+                $form = new \local_curriculum\form\program_form(null, ['context' => $context, 'id' => $id]);
 
                 if ($id) {
                     $record = $DB->get_record('local_curriculum_programs', ['id' => $id], '*', MUST_EXIST);
@@ -178,6 +182,9 @@ class program extends managepage {
                         'program_description',
                         $record->id
                     );
+                    // Prepare custom field data.
+                    $handler = \local_curriculum\customfield\program_handler::create();
+                    $handler->instance_form_before_set_data($record);
                     $form->set_data($record);
                 }
 

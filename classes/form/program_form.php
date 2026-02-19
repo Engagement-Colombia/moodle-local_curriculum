@@ -54,8 +54,8 @@ class program_form extends moodleform {
         $mform->setType('description_editor', PARAM_RAW);
 
         $statuses = [
-            0 => get_string('status_disabled', 'local_curriculum'),
             1 => get_string('status_enabled', 'local_curriculum'),
+            0 => get_string('status_disabled', 'local_curriculum'),
         ];
         $mform->addElement('select', 'status', get_string('status', 'local_curriculum'), $statuses);
         $mform->setType('status', PARAM_INT);
@@ -69,6 +69,40 @@ class program_form extends moodleform {
         $mform->addElement('hidden', 'action', 'add');
         $mform->setType('action', PARAM_TEXT);
 
+        // Add custom fields for program.
+        $id = 0;
+        if (!empty($this->_customdata['id'])) {
+            $id = $this->_customdata['id'];
+        }
+        $handler = \local_curriculum\customfield\program_handler::create();
+        $handler->instance_form_definition($mform, $id);
+
         $this->add_action_buttons();
+    }
+
+    /**
+     * Definition after data
+     */
+    public function definition_after_data() {
+        $id = 0;
+        if (!empty($this->_customdata['id'])) {
+            $id = $this->_customdata['id'];
+        }
+        $handler = \local_curriculum\customfield\program_handler::create();
+        $handler->instance_form_definition_after_data($this->_form, $id);
+    }
+
+    /**
+     * Form validation
+     *
+     * @param array $data
+     * @param array $files
+     * @return array
+     */
+    public function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+        $handler = \local_curriculum\customfield\program_handler::create();
+        $errors += $handler->instance_form_validation($data, $files);
+        return $errors;
     }
 }
