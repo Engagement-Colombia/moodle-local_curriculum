@@ -108,7 +108,7 @@ class curriculum {
                  WHERE v.startdate <= :now1
                    AND (v.enddate IS NULL OR v.enddate = 0 OR v.enddate > :now2)";
         $records = $DB->get_records_sql($sql, ['now1' => $now, 'now2' => $now]);
-        return array_map(function($r) {
+        return array_map(function ($r) {
             return (int) $r->programid;
         }, $records);
     }
@@ -363,7 +363,7 @@ class curriculum {
             if (strpos($item->coursecode, '%') !== false) {
                 // Split by % to escape each segment, then rejoin with % as wildcard.
                 $segments = explode('%', $item->coursecode);
-                $escaped = array_map(function($s) use ($DB) {
+                $escaped = array_map(function ($s) use ($DB) {
                     return $DB->sql_like_escape($s);
                 }, $segments);
                 $pattern = implode('%', $escaped);

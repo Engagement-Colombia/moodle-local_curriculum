@@ -287,7 +287,7 @@
 }
 
 .curriculum-tree-filtered-out {
-    display: none !important;
+    display: none;
 }
 
 /* Responsive adjustments */
