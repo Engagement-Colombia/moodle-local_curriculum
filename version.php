@@ -30,3 +30,6 @@ $plugin->version = 2026021903;
 $plugin->requires = 2024100700;
 $plugin->supported = [405, 501];
 $plugin->maturity = MATURITY_BETA;
+$plugin->dependencies = [
+    'enrol_curriculum' => 2026021900,
+];

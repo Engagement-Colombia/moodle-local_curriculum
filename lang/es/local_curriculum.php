@@ -70,6 +70,7 @@ $string['eventversion_created'] = 'Versión del currículo creada';
 $string['eventversion_deleted'] = 'Versión del currículo eliminada';
 $string['eventversion_updated'] = 'Versión del currículo actualizada';
 $string['expandall'] = 'Expandir todo';
+$string['filtertree'] = 'Filtrar por palabra clave...';
 $string['grouptemplate'] = 'Plantilla de grupo';
 $string['id'] = 'ID';
 $string['item'] = 'Elemento';

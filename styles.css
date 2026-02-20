@@ -280,6 +280,16 @@
     color: var(--secondaryreverse, #333);
 }
 
+/* Filter */
+.curriculum-tree-filter {
+    flex: 1;
+    max-width: 300px;
+}
+
+.curriculum-tree-filtered-out {
+    display: none !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .curriculum-tree-item {

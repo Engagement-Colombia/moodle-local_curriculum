@@ -29,7 +29,9 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/str'
     const SELECTOR_NODE = '.curriculum-tree-node';
     const SELECTOR_EXPAND_ALL = '.curriculum-tree-expand-all';
     const SELECTOR_COLLAPSE_ALL = '.curriculum-tree-collapse-all';
+    const SELECTOR_FILTER = '.curriculum-tree-filter';
     const CLASS_COLLAPSED = 'curriculum-tree-collapsed';
+    const CLASS_FILTERED_OUT = 'curriculum-tree-filtered-out';
 
     /**
      * Map of node types to their AJAX configuration.
@@ -67,6 +69,11 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/str'
          * Whether strings have been loaded.
          */
         stringsLoaded: null,
+
+        /**
+         * Timer ID for filter debounce.
+         */
+        filterTimer: null,
 
         /**
          * Initializes tree interactions.
@@ -114,6 +121,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/str'
             $(document).on('click', SELECTOR_TOGGLE, this.handleToggleClick.bind(this));
             $(document).on('click', SELECTOR_EXPAND_ALL, this.handleExpandAll.bind(this));
             $(document).on('click', SELECTOR_COLLAPSE_ALL, this.handleCollapseAll.bind(this));
+            $(document).on('input', SELECTOR_FILTER, this.handleFilterInput.bind(this));
         },
 
         /**
@@ -306,6 +314,77 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/str'
 
                 if ($children.length > 0) {
                     self.collapseNode($toggle, $node, $children);
+                }
+            });
+        },
+
+        /**
+         * Handles input on the filter field with debounce.
+         *
+         * @param {Object} e - Event object
+         */
+        handleFilterInput: function(e) {
+            var self = this;
+            var $input = $(e.currentTarget);
+            var $tree = $input.closest('.curriculum-tree');
+
+            clearTimeout(self.filterTimer);
+            self.filterTimer = setTimeout(function() {
+                self.applyFilter($tree, $input.val());
+            }, 300);
+        },
+
+        /**
+         * Applies the keyword filter to the tree.
+         * Uses a bottom-up approach: first checks leaf/child nodes, then propagates
+         * visibility up to parent nodes.
+         *
+         * @param {jQuery} $tree The tree root element.
+         * @param {string} keyword The search keyword.
+         */
+        applyFilter: function($tree, keyword) {
+            var self = this;
+            var term = $.trim(keyword).toLowerCase();
+            var $allNodes = $tree.find(SELECTOR_NODE);
+
+            if (term === '') {
+                // Clear filter: show all nodes.
+                $allNodes.removeClass(CLASS_FILTERED_OUT);
+                return;
+            }
+
+            // First, mark all nodes as filtered out.
+            $allNodes.addClass(CLASS_FILTERED_OUT);
+
+            // Then, for each node check if its own content matches.
+            // Process bottom-up by reversing the jQuery collection (deepest nodes first).
+            var nodes = $allNodes.get().reverse();
+
+            $.each(nodes, function(index, el) {
+                var $node = $(el);
+
+                // Check own text content (label, description, meta) — not children's text.
+                var $content = $node.children('.curriculum-tree-item').find('.curriculum-tree-content');
+                var text = $content.text().toLowerCase();
+                var selfMatch = text.indexOf(term) !== -1;
+
+                // Check if any direct child node is visible (not filtered out).
+                var $children = $node.children(SELECTOR_CHILDREN);
+                var childMatch = false;
+                if ($children.length > 0) {
+                    childMatch = $children.find('> ' + SELECTOR_NODE + ':not(.' + CLASS_FILTERED_OUT + ')').length > 0;
+                }
+
+                if (selfMatch || childMatch) {
+                    $node.removeClass(CLASS_FILTERED_OUT);
+
+                    // Auto-expand if a child matches so the path is visible.
+                    if (childMatch && $children.length > 0 && $children.css('display') === 'none') {
+                        var $button = $node.find('> .curriculum-tree-item > ' + SELECTOR_TOGGLE);
+                        if ($button.length > 0) {
+                            self.expandNode($button, $node, $children);
+                        }
+                    }
                 }
             });
         },
