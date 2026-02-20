@@ -15,18 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for Curriculum
+ * Upgrade steps for Curriculum
+ *
+ * Documentation: {@link https://moodledev.io/docs/guides/upgrade}
  *
  * @package    local_curriculum
+ * @category   upgrade
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Execute the plugin upgrade steps from the given old version.
+ *
+ * @param int $oldversion
+ * @return bool
+ */
+function xmldb_local_curriculum_upgrade($oldversion) {
+    global $DB;
+    $dbman = $DB->get_manager();
 
-$plugin->component = 'local_curriculum';
-$plugin->release = '1.0.03';
-$plugin->version = 2026021903;
-$plugin->requires = 2024100700;
-$plugin->supported = [405, 501];
-$plugin->maturity = MATURITY_BETA;
+    if ($oldversion < 2026021902) {
+        $table = new xmldb_table('local_curriculum_cycle_users');
+        $field = new xmldb_field('endreason', XMLDB_TYPE_CHAR, '15', null, null, null, null, 'timeend');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2026021902, 'local', 'curriculum');
+    }
+
+    return true;
+}

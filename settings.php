@@ -66,4 +66,15 @@ if ($hassiteconfig) {
             'local/curriculum:manage'
         )
     );
+
+    // Add cycle users report to site reports.
+    $ADMIN->add(
+        'reports',
+        new admin_externalpage(
+            'local_curriculum_report',
+            new lang_string('reportcycleusers', 'local_curriculum'),
+            new moodle_url('/local/curriculum/report.php'),
+            'local/curriculum:viewreport'
+        )
+    );
 }

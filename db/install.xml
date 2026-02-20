@@ -67,6 +67,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Foreign key to user table"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" COMMENT="Start timestamp for user"/>
         <FIELD NAME="timeend" TYPE="int" LENGTH="10" NOTNULL="false" COMMENT="Completion timestamp, if completed"/>
+        <FIELD NAME="endreason" TYPE="char" LENGTH="15" NOTNULL="false" COMMENT="Reason for ending: programchange, completed, userdeleted, homologated"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

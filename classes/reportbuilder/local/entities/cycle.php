@@ -107,6 +107,7 @@ class cycle extends base {
             new lang_string('id', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$cyclealias}.id")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
@@ -117,6 +118,7 @@ class cycle extends base {
             null,
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$cyclealias}.versionid")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
@@ -127,6 +129,7 @@ class cycle extends base {
             new lang_string('name'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$cyclealias}.name")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_TEXT);
@@ -137,6 +140,7 @@ class cycle extends base {
             new lang_string('description'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$cyclealias}.description")
         ->set_is_sortable(false)
         ->set_type(column::TYPE_TEXT)
@@ -150,6 +154,7 @@ class cycle extends base {
             new lang_string('durationdays', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$cyclealias}.duration")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
@@ -160,6 +165,7 @@ class cycle extends base {
             new lang_string('stage', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$cyclealias}.stage")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
@@ -170,6 +176,7 @@ class cycle extends base {
             new lang_string('itemcount', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_field("(SELECT COUNT(1) FROM {local_curriculum_cycle_items} ci WHERE ci.cycleid = {$cyclealias}.id)", 'itemcount')
         ->set_type(column::TYPE_INTEGER)
         ->set_is_sortable(true);

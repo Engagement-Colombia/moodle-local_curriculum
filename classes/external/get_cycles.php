@@ -44,7 +44,6 @@ require_once($CFG->libdir . '/externallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_cycles extends external_api {
-
     /**
      * Returns description of method parameters.
      *
@@ -70,8 +69,7 @@ class get_cycles extends external_api {
         self::validate_context($context);
         require_capability('local/curriculum:manage', $context);
 
-        $cycles = $DB->get_records('local_curriculum_cycles',
-            ['versionid' => $params['versionid']], 'stage ASC, name ASC');
+        $cycles = $DB->get_records('local_curriculum_cycles', ['versionid' => $params['versionid']], 'stage ASC, name ASC');
 
         $result = [];
         foreach ($cycles as $cycle) {

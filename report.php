@@ -15,18 +15,31 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for Curriculum
+ * Curriculum cycle users report page.
  *
  * @package    local_curriculum
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+require_once(__DIR__ . '/../../config.php');
 
-$plugin->component = 'local_curriculum';
-$plugin->release = '1.0.03';
-$plugin->version = 2026021903;
-$plugin->requires = 2024100700;
-$plugin->supported = [405, 501];
-$plugin->maturity = MATURITY_BETA;
+require_login();
+
+$context = context_system::instance();
+require_capability('local/curriculum:viewreport', $context);
+
+$PAGE->set_context($context);
+$PAGE->set_url(new moodle_url('/local/curriculum/report.php'));
+$PAGE->set_pagelayout('report');
+$PAGE->set_title(get_string('reportcycleusers', 'local_curriculum'));
+$PAGE->set_heading(get_string('reportcycleusers', 'local_curriculum'));
+
+$report = \core_reportbuilder\system_report_factory::create(
+    \local_curriculum\reportbuilder\local\systemreports\cycle_users::class,
+    $context
+);
+
+echo $OUTPUT->header();
+echo $report->output();
+echo $OUTPUT->footer();

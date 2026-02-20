@@ -36,9 +36,9 @@ use core_customfield\field_controller;
  */
 class program_handler extends handler {
     /**
-     * @var program_handler
+     * @var program_handler The singleton instance of this handler.
      */
-    static protected $singleton;
+    protected static $singleton;
 
     /**
      * Returns a singleton.

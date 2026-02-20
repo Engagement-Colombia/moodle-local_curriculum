@@ -44,7 +44,6 @@ require_once($CFG->libdir . '/externallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_versions extends external_api {
-
     /**
      * Returns description of method parameters.
      *
@@ -70,8 +69,7 @@ class get_versions extends external_api {
         self::validate_context($context);
         require_capability('local/curriculum:manage', $context);
 
-        $versions = $DB->get_records('local_curriculum_versions',
-            ['programid' => $params['programid']], 'name ASC');
+        $versions = $DB->get_records('local_curriculum_versions', ['programid' => $params['programid']], 'name ASC');
 
         $dateformat = get_string('strftimedaydate', 'langconfig');
 

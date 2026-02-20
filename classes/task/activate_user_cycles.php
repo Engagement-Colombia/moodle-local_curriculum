@@ -29,7 +29,6 @@ use local_curriculum\local\curriculum;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class activate_user_cycles extends \core\task\scheduled_task {
-
     /**
      * Return the task name.
      *
@@ -43,20 +42,10 @@ class activate_user_cycles extends \core\task\scheduled_task {
      * Execute the task.
      */
     public function execute(): void {
-        global $DB;
+        $programids = curriculum::get_active_program_ids();
 
-        // Get all programs that have an active version (enddate IS NULL).
-        $sql = "SELECT DISTINCT v.programid
-                  FROM {local_curriculum_versions} v
-                 WHERE v.enddate IS NULL OR v.enddate = 0";
-        $programs = $DB->get_records_sql($sql);
-
-        if (empty($programs)) {
-            return;
-        }
-
-        foreach ($programs as $program) {
-            $this->process_program($program->programid);
+        foreach ($programids as $programid) {
+            $this->process_program($programid);
         }
     }
 
@@ -94,8 +83,6 @@ class activate_user_cycles extends \core\task\scheduled_task {
      * @param int $userid The user ID.
      */
     private function activate_cycles_for_user(curriculum $curriculum, int $userid): void {
-        global $DB;
-
         $activecycles = $curriculum->get_user_active_cycles($userid);
 
         foreach ($activecycles as $cycle) {
@@ -104,13 +91,7 @@ class activate_user_cycles extends \core\task\scheduled_task {
                 continue;
             }
 
-            $record = new \stdClass();
-            $record->cycleid = $cycle->id;
-            $record->userid = $userid;
-            $record->timestart = $cycle->activationtime;
-            $record->timeend = null;
-
-            $DB->insert_record('local_curriculum_cycle_users', $record);
+            curriculum::assign_user_to_cycle($userid, $cycle->id, $cycle->activationtime);
         }
     }
 }

@@ -118,10 +118,16 @@ class observer {
         }
 
         // Close active cycles for programs no longer in the user profile.
+        $isdeleted = $event->eventname === '\\core\\event\\user_deleted';
+        $endreason = $isdeleted ? curriculum::ENDREASON_USER_DELETED : curriculum::ENDREASON_PROGRAM_CHANGE;
         $now = time();
         foreach ($activecycles as $ac) {
             if (!isset($profileprogramids[$ac->programid])) {
-                $DB->set_field('local_curriculum_cycle_users', 'timeend', $now, ['id' => $ac->id]);
+                $DB->update_record('local_curriculum_cycle_users', (object) [
+                    'id' => $ac->id,
+                    'timeend' => $now,
+                    'endreason' => $endreason,
+                ]);
             }
         }
     }
@@ -133,20 +139,12 @@ class observer {
      * @param int $userid The user ID.
      */
     private static function start_first_cycle(int $programid, int $userid): void {
-        global $DB;
-
         $curriculum = new curriculum($programid);
         $firstcycle = $curriculum->get_first_cycle();
         if (!$firstcycle) {
             return;
         }
 
-        $record = new \stdClass();
-        $record->cycleid = $firstcycle->id;
-        $record->userid = $userid;
-        $record->timestart = time();
-        $record->timeend = null;
-
-        $DB->insert_record('local_curriculum_cycle_users', $record);
+        curriculum::assign_user_to_cycle($userid, $firstcycle->id, time());
     }
 }

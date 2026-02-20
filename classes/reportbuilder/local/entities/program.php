@@ -108,6 +108,7 @@ class program extends base {
             new lang_string('id', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$programalias}.id")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
@@ -118,6 +119,7 @@ class program extends base {
             new lang_string('name'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$programalias}.name")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_TEXT);
@@ -128,6 +130,7 @@ class program extends base {
             new lang_string('description'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$programalias}.description")
         ->set_is_sortable(false)
         ->set_type(column::TYPE_TEXT)
@@ -141,6 +144,7 @@ class program extends base {
             new lang_string('status'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$programalias}.status")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER)
@@ -157,6 +161,7 @@ class program extends base {
             new lang_string('timecreated', 'core'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$programalias}.timecreated")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_TIMESTAMP)
@@ -168,12 +173,11 @@ class program extends base {
             new lang_string('timemodified', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$programalias}.timemodified")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_TIMESTAMP)
         ->add_callback([format::class, 'userdate']);
-
-        // Additional columns from related tables can be added here, e.g. version count, latest version date, etc.
 
         // Version count.
         $columns[] = (new column(
@@ -181,6 +185,7 @@ class program extends base {
             new lang_string('versioncount', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_field("(SELECT COUNT(1) FROM {local_curriculum_versions} v WHERE v.programid = {$programalias}.id)", 'versioncount')
         ->set_type(column::TYPE_INTEGER)
         ->set_is_sortable(true);

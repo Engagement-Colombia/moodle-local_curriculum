@@ -217,6 +217,7 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/notification', 'core/str'
                     // Ensure expanded state.
                     var $button = $node.find('> .curriculum-tree-item > ' + SELECTOR_TOGGLE);
                     self.expandNode($button, $node, $container);
+                    return true;
                 })
                 .catch(function(ex) {
                     $container.html('<div class="alert alert-danger p-2">Error loading data.</div>');

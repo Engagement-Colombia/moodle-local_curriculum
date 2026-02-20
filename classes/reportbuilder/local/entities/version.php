@@ -95,6 +95,7 @@ class version extends base {
             new lang_string('id', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$versionalias}.id")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
@@ -105,6 +106,7 @@ class version extends base {
             null,
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$versionalias}.programid")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_INTEGER);
@@ -115,6 +117,7 @@ class version extends base {
             new lang_string('name'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$versionalias}.name")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_TEXT);
@@ -125,6 +128,7 @@ class version extends base {
             new lang_string('startdate', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$versionalias}.startdate")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_TIMESTAMP)
@@ -136,6 +140,7 @@ class version extends base {
             new lang_string('enddate', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_fields("{$versionalias}.enddate")
         ->set_is_sortable(true)
         ->set_type(column::TYPE_TIMESTAMP)
@@ -147,6 +152,7 @@ class version extends base {
             new lang_string('cyclecount', 'local_curriculum'),
             $this->get_entity_name()
         ))
+        ->add_joins($this->get_joins())
         ->add_field("(SELECT COUNT(1) FROM {local_curriculum_cycles} c WHERE c.versionid = {$versionalias}.id)", 'cyclecount')
         ->set_type(column::TYPE_INTEGER)
         ->set_is_sortable(true);
