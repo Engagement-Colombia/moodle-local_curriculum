@@ -57,6 +57,8 @@ class versions extends system_report {
         $this->add_entity($entity);
         $this->add_base_fields("{$entitymainalias}.id");
         $this->add_base_fields("{$entitymainalias}.programid");
+        $this->add_base_fields("(SELECT MAX(1) FROM {local_curriculum_cycles} c
+            WHERE c.versionid = {$entitymainalias}.id) AS hascycles");
 
         // Filter by program ID (essential for the master-detail view).
         $this->add_base_condition_simple("{$entitymainalias}.programid", $this->get_parameter('programid', 0, PARAM_INT));
@@ -102,13 +104,9 @@ class versions extends system_report {
                 'class' => 'text-danger',
             ]
         );
-        $deleteaction->add_callback(function ($row) use ($deleteaction) {
+        $deleteaction->add_callback(function ($row) {
             // Delete action is only available if there are no cycles.
-            if (!empty($row->cyclecount)) {
-                return null;
-            }
-
-            return $deleteaction;
+            return empty($row->hascycles);
         });
         $this->add_action($deleteaction);
     }

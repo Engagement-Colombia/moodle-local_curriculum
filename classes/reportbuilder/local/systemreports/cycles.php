@@ -60,6 +60,10 @@ class cycles extends system_report {
         $this->add_entity($entity);
         $this->add_base_fields("{$entitymainalias}.id");
         $this->add_base_fields("{$entitymainalias}.versionid");
+        $this->add_base_fields("(SELECT MAX(1) FROM {local_curriculum_cycle_items} ci
+            WHERE ci.cycleid = {$entitymainalias}.id) AS hasitems");
+        $this->add_base_fields("(SELECT MAX(1) FROM {local_curriculum_cycle_users} cu
+            WHERE cu.cycleid = {$entitymainalias}.id) AS hasusers");
 
         // Filter by version ID (essential for the master-detail view).
         $this->add_base_condition_simple("{$entitymainalias}.versionid", $this->get_parameter('versionid', 0, PARAM_INT));
@@ -108,13 +112,9 @@ class cycles extends system_report {
                 'class' => 'text-danger',
             ]
         );
-        $deleteaction->add_callback(function ($row) use ($deleteaction) {
-            // Delete action is only available if there are no items.
-            if (!empty($row->itemcount)) {
-                return null;
-            }
-
-            return $deleteaction;
+        $deleteaction->add_callback(function ($row) {
+            // Delete action is only available if there are no items or enrolled users.
+            return empty($row->hasitems) && empty($row->hasusers);
         });
         $this->add_action($deleteaction);
     }

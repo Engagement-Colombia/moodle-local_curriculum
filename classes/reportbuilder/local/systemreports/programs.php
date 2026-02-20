@@ -58,6 +58,8 @@ class programs extends system_report {
         $this->set_main_table('local_curriculum_programs', $entitymainalias);
         $this->add_entity($entity);
         $this->add_base_fields("{$entitymainalias}.id");
+        $this->add_base_fields("(SELECT MAX(1) FROM {local_curriculum_versions} v
+            WHERE v.programid = {$entitymainalias}.id) AS hasversions");
 
         $this->add_columns_from_entities([
             'program:name',
@@ -93,13 +95,9 @@ class programs extends system_report {
                 'class' => 'text-danger',
             ]
         );
-        $deleteaction->add_callback(function ($row) use ($deleteaction) {
+        $deleteaction->add_callback(function ($row) {
             // Delete action is only available if there are no versions.
-            if (!empty($row->versioncount)) {
-                return null;
-            }
-
-            return $deleteaction;
+            return empty($row->hasversions);
         });
         $this->add_action($deleteaction);
     }
