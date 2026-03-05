@@ -34,6 +34,24 @@ if ($hassiteconfig) {
         )
     );
 
+    // General settings page.
+    $settings = new admin_settingpage('local_curriculum_settings', new lang_string('settings', 'local_curriculum'));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'local_curriculum/autocreategroups',
+        new lang_string('autocreategroups', 'local_curriculum'),
+        new lang_string('autocreategroups_desc', 'local_curriculum'),
+        1
+    ));
+
+    $settings->add(new admin_setting_configtextarea(
+        'local_curriculum/newgroupnotifyemails',
+        new lang_string('newgroupnotifyemails', 'local_curriculum'),
+        new lang_string('newgroupnotifyemails_desc', 'local_curriculum'),
+        ''
+    ));
+    $ADMIN->add('local_curriculum', $settings);
+
     // Add custom fields configuration page.
     $ADMIN->add(
         'local_curriculum',

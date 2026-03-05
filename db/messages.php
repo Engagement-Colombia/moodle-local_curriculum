@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for Curriculum
+ * Defines message providers (types of messages being sent) for Curriculum
  *
  * @package    local_curriculum
+ * @category   message
  * @copyright  2026 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_curriculum';
-$plugin->release = '1.0.03';
-$plugin->version = 2026021903.01;
-$plugin->requires = 2024100700;
-$plugin->supported = [405, 501];
-$plugin->maturity = MATURITY_BETA;
-$plugin->dependencies = [
-    'enrol_curriculum' => 2026021900,
+$messageproviders = [
+    'newgroupmember' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
+    ],
 ];

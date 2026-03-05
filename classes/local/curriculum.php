@@ -297,8 +297,8 @@ class curriculum {
     private static function enrol_user_in_cycle_courses(int $userid, int $cycleid, int $timestart): void {
         global $DB;
 
-        $courses = self::get_cycle_courses($cycleid);
-        if (empty($courses)) {
+        $coursesitems = self::get_cycle_courses_with_items($cycleid);
+        if (empty($coursesitems)) {
             return;
         }
 
@@ -309,7 +309,10 @@ class curriculum {
 
         $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
 
-        foreach ($courses as $course) {
+        foreach ($coursesitems as $entry) {
+            $course = $entry->course;
+            $item = $entry->item;
+
             $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'curriculum']);
 
             if (!$instance) {
@@ -324,21 +327,30 @@ class curriculum {
             if (!is_enrolled(\context_course::instance($course->id), $userid)) {
                 $enrolplugin->enrol_user($instance, $userid, $studentroleid, $timestart);
             }
+
+            if (!empty($item->grouptemplate)) {
+                self::assign_user_to_group($userid, $course->id, $item->grouptemplate);
+            }
         }
     }
 
     /**
-     * Get the courses that belong to a cycle.
+     * Get the courses that belong to a cycle, along with their originating cycle item.
      *
      * Courses are matched by the coursecode field in cycle items. The coursecode
      * can be an exact course idnumber or a pattern using % as wildcard (SQL LIKE).
      *
+     * Each returned element is an object with:
+     *   - course: the course record.
+     *   - item: the cycle item record that matched the course.
+     *
+     * A course appears only once; the first matching item takes precedence.
      * Results are cached statically per cycle ID.
      *
      * @param int $cycleid The cycle ID.
-     * @return array List of course records matching the cycle items.
+     * @return array List of objects with course and item properties.
      */
-    public static function get_cycle_courses(int $cycleid): array {
+    public static function get_cycle_courses_with_items(int $cycleid): array {
         global $DB;
 
         if (array_key_exists($cycleid, self::$cyclecourses)) {
@@ -352,7 +364,7 @@ class curriculum {
             return [];
         }
 
-        $courses = [];
+        $coursesitems = [];
         $found = [];
 
         foreach ($items as $item) {
@@ -379,12 +391,222 @@ class curriculum {
             foreach ($matches as $course) {
                 if (!isset($found[$course->id])) {
                     $found[$course->id] = true;
-                    $courses[] = $course;
+                    $entry = new \stdClass();
+                    $entry->course = $course;
+                    $entry->item = $item;
+                    $coursesitems[] = $entry;
                 }
             }
         }
 
-        self::$cyclecourses[$cycleid] = $courses;
-        return $courses;
+        self::$cyclecourses[$cycleid] = $coursesitems;
+        return $coursesitems;
+    }
+
+    /**
+     * Resolve a group template string by replacing placeholders with user profile values.
+     *
+     * Supported placeholders (enclosed in curly braces):
+     *   - Standard fields: {institution}, {department}, {city}, {country}, {lang}.
+     *   - Custom profile fields: {profile_field_shortname}.
+     *
+     * @param string $template The group template string.
+     * @param int $userid The user ID.
+     * @return string The resolved group name.
+     */
+    private static function resolve_group_template(string $template, int $userid): string {
+        global $CFG, $DB;
+
+        // Get user record with fields needed for standard placeholders.
+        $standardfields = ['institution', 'department', 'city', 'country', 'lang'];
+        $user = $DB->get_record('user', ['id' => $userid], 'id, ' . implode(', ', $standardfields));
+        if (!$user) {
+            return $template;
+        }
+
+        foreach ($standardfields as $field) {
+            $template = str_replace('{' . $field . '}', $user->$field ?? '', $template);
+        }
+
+        // Replace custom profile field placeholders.
+        if (strpos($template, '{profile_field_') !== false) {
+            require_once($CFG->dirroot . '/user/profile/lib.php');
+            $profilefields = profile_user_record($userid);
+
+            if ($profilefields) {
+                preg_match_all('/\{profile_field_([^}]+)\}/', $template, $matches);
+                foreach ($matches[1] as $shortname) {
+                    $value = $profilefields->$shortname ?? '';
+                    $template = str_replace('{profile_field_' . $shortname . '}', $value, $template);
+                }
+            }
+        }
+
+        return $template;
+    }
+
+    /**
+     * Assign a user to a group in a course based on a group template.
+     *
+     * Resolves the template, checks if the group exists in the course,
+     * creates it if necessary, and adds the user as a member.
+     *
+     * @param int $userid The user ID.
+     * @param int $courseid The course ID.
+     * @param string $grouptemplate The group template string.
+     */
+    private static function assign_user_to_group(int $userid, int $courseid, string $grouptemplate): void {
+        global $CFG;
+
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $groupname = self::resolve_group_template($grouptemplate, $userid);
+        if (empty($groupname)) {
+            return;
+        }
+
+        $groupid = groups_get_group_by_name($courseid, $groupname);
+
+        if (!$groupid) {
+            $autocreate = get_config('local_curriculum', 'autocreategroups');
+            if ($autocreate) {
+                $data = new \stdClass();
+                $data->courseid = $courseid;
+                $data->name = $groupname;
+                $groupid = groups_create_group($data);
+            }
+
+            self::notify_new_group_created($groupname, $courseid, !$autocreate);
+        }
+
+        if (!$groupid) {
+            return;
+        }
+
+        groups_add_member($groupid, $userid);
+
+        self::notify_teachers_new_group_member($userid, $courseid, $groupid, $groupname);
+    }
+
+    /**
+     * Send a notification to teachers in a group when a new member is added.
+     *
+     * Finds all users with editingteacher or teacher role in the course that
+     * are also members of the group, and sends them a Moodle notification.
+     *
+     * @param int $userid The new member's user ID.
+     * @param int $courseid The course ID.
+     * @param int $groupid The group ID.
+     * @param string $groupname The group name.
+     */
+    private static function notify_teachers_new_group_member(int $userid, int $courseid, int $groupid, string $groupname): void {
+        global $CFG, $DB;
+
+        $course = $DB->get_record('course', ['id' => $courseid], 'id, fullname');
+        $newuser = \core_user::get_user($userid);
+        if (!$course || !$newuser) {
+            return;
+        }
+
+        if (empty($CFG->coursecontact)) {
+            return;
+        }
+
+        $roleids = explode(',', $CFG->coursecontact);
+        $context = \context_course::instance($courseid);
+
+        $teachers = get_role_users($roleids, $context, false, 'ra.id, u.*', 'u.lastname ASC', true, $groupid);
+
+        if (empty($teachers)) {
+            return;
+        }
+
+        $a = new \stdClass();
+        $a->userfullname = fullname($newuser);
+        $a->groupname = $groupname;
+        $a->coursename = $course->fullname;
+        $a->groupurl = (new \moodle_url('/group/members.php', ['group' => $groupid]))->out(false);
+
+        $subject = get_string('newgroupmember_subject', 'local_curriculum', $a);
+        $body = get_string('newgroupmember_body', 'local_curriculum', $a);
+
+        $noreplyuser = \core_user::get_noreply_user();
+
+        foreach ($teachers as $teacher) {
+            $message = new \core\message\message();
+            $message->component = 'local_curriculum';
+            $message->name = 'newgroupmember';
+            $message->userfrom = $noreplyuser;
+            $message->userto = $teacher;
+            $message->subject = $subject;
+            $message->fullmessage = $body;
+            $message->fullmessageformat = FORMAT_PLAIN;
+            $message->fullmessagehtml = '';
+            $message->smallmessage = $subject;
+            $message->notification = 1;
+            $message->contexturl = (new \moodle_url('/group/members.php', ['group' => $groupid]))->out(false);
+            $message->contexturlname = $a->groupname;
+            $message->courseid = $courseid;
+
+            message_send($message);
+        }
+    }
+
+    /**
+     * Send email notifications about a newly created group.
+     *
+     * Reads the configured list of email addresses and sends each one
+     * a notification with the group and course details.
+     *
+     * @param string $groupname The name of the group.
+     * @param int $courseid The course ID where the group was or should be created.
+     * @param bool $pendingcreation Whether the group was not created and needs manual creation.
+     */
+    private static function notify_new_group_created(string $groupname, int $courseid, bool $pendingcreation = false): void {
+        global $DB;
+
+        $emails = get_config('local_curriculum', 'newgroupnotifyemails');
+        if (empty($emails)) {
+            return;
+        }
+
+        $course = $DB->get_record('course', ['id' => $courseid], 'id, fullname');
+        $a = new \stdClass();
+        $a->groupname = $groupname;
+        $a->courseid = $courseid;
+        $a->coursename = $course ? $course->fullname : $courseid;
+        $a->courseurl = (new \moodle_url('/group/index.php', ['id' => $courseid]))->out(false);
+
+        $strprefix = $pendingcreation ? 'newgrouppending' : 'newgroupcreated';
+        $subject = get_string($strprefix . '_subject', 'local_curriculum');
+        $body = get_string($strprefix . '_body', 'local_curriculum', $a);
+
+        $noreplyuser = \core_user::get_noreply_user();
+
+        $emaillist = preg_split('/\r\n|\r|\n/', $emails);
+        foreach ($emaillist as $email) {
+            $email = trim($email);
+            if (empty($email) || !validate_email($email)) {
+                continue;
+            }
+
+            $recipient = $DB->get_record('user', ['email' => $email, 'deleted' => 0], '*', IGNORE_MULTIPLE);
+            if (!$recipient) {
+                $recipient = \core_user::get_noreply_user();
+                $recipient->id = -1;
+                $recipient->email = $email;
+                $recipient->firstname = '';
+                $recipient->lastname = '';
+                $recipient->firstnamephonetic = '';
+                $recipient->lastnamephonetic = '';
+                $recipient->middlename = '';
+                $recipient->alternatename = '';
+                $recipient->maildisplay = 1;
+                $recipient->mailformat = 1;
+                $recipient->emailstop = 0;
+            }
+
+            email_to_user($recipient, $noreplyuser, $subject, $body);
+        }
     }
 }
