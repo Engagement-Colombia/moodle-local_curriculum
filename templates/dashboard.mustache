@@ -65,6 +65,40 @@
                 </div>
             </div>
 
+            {{#hastimeline}}
+                <div class="curriculum-timeline px-3 pt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>
+                            {{#pix}} i/calendareventtime {{/pix}}
+                            {{#str}}day, local_curriculum{{/str}} {{elapseddays}} {{#str}}of, local_curriculum{{/str}} {{totaldurationdays}}
+                        </small>
+                        <small>
+                            {{timeprogress}}% {{#str}}oftimeelapsed, local_curriculum{{/str}}
+                            {{#timeoverdue}}
+                                <span class="text-danger ml-1">
+                                    {{#pix}} i/caution {{/pix}}
+                                    {{#str}}timeoverdue, local_curriculum{{/str}}
+                                </span>
+                            {{/timeoverdue}}
+                            {{^timeoverdue}}
+                                &mdash; {{remainingdays}} {{#str}}daysremaining, local_curriculum{{/str}}
+                            {{/timeoverdue}}
+                        </small>
+                    </div>
+                    <div class="curriculum-timeline-bar">
+                        {{#cycles}}
+                            <div class="curriculum-timeline-segment curriculum-timeline-{{status}}"
+                                 style="width: {{durationpercent}}%"
+                                 title="{{cyclename}}: {{durationdays}} {{#str}}daysunit, local_curriculum{{/str}}">
+                                <span class="curriculum-timeline-segment-label">{{cyclename}}</span>
+                            </div>
+                        {{/cycles}}
+                        <div class="curriculum-timeline-marker" style="left: {{timeprogress}}%"
+                             title="{{#str}}day, local_curriculum{{/str}} {{elapseddays}}"></div>
+                    </div>
+                </div>
+            {{/hastimeline}}
+
             {{#hascycles}}
                 <div class="card-body">
                     {{! Stepper }}
@@ -78,7 +112,7 @@
                                 {{/isfirst}}
                                 <div class="curriculum-stepper-circle">
                                     {{#iscompleted}}
-                                        <i class="fa fa-check" aria-hidden="true"></i>
+                                        {{#pix}} i/checkedcircle {{/pix}}
                                     {{/iscompleted}}
                                     {{^iscompleted}}
                                         {{stepnumber}}
@@ -140,18 +174,18 @@
                                             <li class="list-group-item d-flex align-items-center curriculum-course-item curriculum-course-{{statusclass}}">
                                                 <span class="curriculum-course-icon mr-2">
                                                     {{#iscomplete}}
-                                                        <i class="fa fa-check-circle text-success" aria-hidden="true"></i>
+                                                        {{#pix}} t/online {{/pix}}
                                                     {{/iscomplete}}
                                                     {{^iscomplete}}
                                                         {{#hasprogress}}
-                                                            <i class="fa fa-spinner fa-spin text-primary" aria-hidden="true"></i>
+                                                            {{#pix}} i/item {{/pix}}
                                                         {{/hasprogress}}
                                                         {{^hasprogress}}
                                                             {{#islocked}}
-                                                                <i class="fa fa-lock text-muted" aria-hidden="true"></i>
+                                                                {{#pix}} t/locked {{/pix}}
                                                             {{/islocked}}
                                                             {{^islocked}}
-                                                                <i class="fa fa-circle-o text-muted" aria-hidden="true"></i>
+                                                                {{#pix}} i/uncheckedcircle {{/pix}}
                                                             {{/islocked}}
                                                         {{/hasprogress}}
                                                     {{/iscomplete}}
@@ -235,13 +269,13 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="mr-2">
                                                     {{#iscompleted}}
-                                                        <i class="fa fa-check-circle text-success" aria-hidden="true"></i>
+                                                        {{#pix}} i/grade_correct {{/pix}}
                                                     {{/iscompleted}}
                                                     {{#isactive}}
-                                                        <i class="fa fa-play-circle text-primary" aria-hidden="true"></i>
+                                                        {{#pix}} t/go {{/pix}}
                                                     {{/isactive}}
                                                     {{#islocked}}
-                                                        <i class="fa fa-lock text-muted" aria-hidden="true"></i>
+                                                        {{#pix}} i/lock {{/pix}}
                                                     {{/islocked}}
                                                 </span>
                                                 <span>{{cyclename}}</span>
@@ -268,8 +302,3 @@
         </div>
     {{/hashistory}}
 </div>
-{{#js}}
-require(['local_curriculum/dashboard'], function(mod) {
-    mod.init();
-});
-{{/js}}

@@ -270,6 +270,41 @@ class dashboard implements renderable, templatable {
             $cycles[] = $cycledata;
         }
 
+        // Calculate timeline data for the program.
+        $totaldurationdays = 0;
+        foreach ($allcycles as $c) {
+            $totaldurationdays += (int) $c->duration;
+        }
+
+        // Find the earliest timestart among user assignments.
+        $origintimestart = null;
+        foreach ($group['assignments'] as $a) {
+            if (!empty($a->timestart) && ($origintimestart === null || $a->timestart < $origintimestart)) {
+                $origintimestart = (int) $a->timestart;
+            }
+        }
+
+        $program->totaldurationdays = $totaldurationdays;
+        $program->hastimeline = ($totaldurationdays > 0 && $origintimestart !== null);
+
+        if ($program->hastimeline) {
+            $now = time();
+            $elapseddays = max(0, floor(($now - $origintimestart) / DAYSECS));
+            $program->elapseddays = (int) $elapseddays;
+            $program->remainingdays = max(0, $totaldurationdays - $elapseddays);
+            $program->timeprogress = min(100, round(($elapseddays / $totaldurationdays) * 100));
+            $program->timeoverdue = ($elapseddays > $totaldurationdays);
+
+            // Calculate each cycle's proportion and offset in the timeline.
+            $accumulatedoffset = 0;
+            foreach ($cycles as $cycledata) {
+                $cycledata->durationdays = (int) $cycledata->duration;
+                $cycledata->durationpercent = round(($cycledata->durationdays / $totaldurationdays) * 100, 2);
+                $cycledata->timeoffsetpercent = round(($accumulatedoffset / $totaldurationdays) * 100, 2);
+                $accumulatedoffset += $cycledata->durationdays;
+            }
+        }
+
         $program->cycles = $cycles;
         $program->hascycles = !empty($cycles);
         $program->totalcycles = $totalcycles;
