@@ -1,0 +1,275 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_curriculum/dashboard
+
+    User curriculum dashboard with stepper and course details.
+
+    Example context (json):
+    {
+        "hasprograms": true,
+        "currentprogram": {
+            "programname": "Engineering",
+            "versionname": "2024",
+            "overallprogress": 50,
+            "completedcycles": 1,
+            "totalcycles": 2,
+            "hascycles": true,
+            "cycles": []
+        },
+        "hashistory": false,
+        "historyprograms": []
+    }
+}}
+<div class="curriculum-dashboard">
+    {{^hasprograms}}
+        <div class="alert alert-info">
+            {{#str}}nocurriculum, local_curriculum{{/str}}
+        </div>
+    {{/hasprograms}}
+
+    {{#currentprogram}}
+        <div class="card mb-4 curriculum-dashboard-current">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <h4 class="mb-0">{{programname}}</h4>
+                        <small>{{#str}}version, local_curriculum{{/str}}: {{versionname}}</small>
+                    </div>
+                    <div class="text-right mt-2 mt-md-0">
+                        <small>{{#str}}overallprogress, local_curriculum{{/str}}</small>
+                        <div class="d-flex align-items-center">
+                            <div class="progress curriculum-dashboard-overall-progress mr-2">
+                                <div class="progress-bar bg-white" role="progressbar"
+                                     style="width: {{overallprogress}}%"
+                                     aria-valuenow="{{overallprogress}}" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <strong>{{overallprogress}}%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{#hascycles}}
+                <div class="card-body">
+                    {{! Stepper }}
+                    <div class="curriculum-stepper">
+                        {{#cycles}}
+                            <div class="curriculum-stepper-step curriculum-stepper-{{status}}"
+                                 data-cycleid="{{cycleid}}" role="button" tabindex="0"
+                                 aria-label="{{cyclename}}">
+                                {{^isfirst}}
+                                    <div class="curriculum-stepper-line curriculum-stepper-line-{{status}}"></div>
+                                {{/isfirst}}
+                                <div class="curriculum-stepper-circle">
+                                    {{#iscompleted}}
+                                        <i class="fa fa-check" aria-hidden="true"></i>
+                                    {{/iscompleted}}
+                                    {{^iscompleted}}
+                                        {{stepnumber}}
+                                    {{/iscompleted}}
+                                </div>
+                                <div class="curriculum-stepper-label">{{cyclename}}</div>
+                                {{#isactive}}
+                                    <div class="curriculum-stepper-progress-text">{{cycleprogress}}%</div>
+                                {{/isactive}}
+                            </div>
+                        {{/cycles}}
+                    </div>
+
+                    {{! Cycle detail panels }}
+                    {{#cycles}}
+                        <div class="curriculum-cycle-detail card mt-3 {{^isactive}}d-none{{/isactive}}"
+                             data-cycle-detail="{{cycleid}}">
+                            <div class="card-header d-flex justify-content-between align-items-center
+                                        curriculum-cycle-detail-header-{{status}}">
+                                <div>
+                                    <h5 class="mb-0">{{cyclename}}</h5>
+                                    {{#timestart}}
+                                        <small>
+                                            {{#str}}startdate, local_curriculum{{/str}}: {{timestart}}
+                                            {{#timeend}}
+                                                &mdash; {{#str}}enddate, local_curriculum{{/str}}: {{timeend}}
+                                            {{/timeend}}
+                                        </small>
+                                    {{/timestart}}
+                                </div>
+                                <div>
+                                    {{#iscompleted}}
+                                        <span class="badge badge-success">{{#str}}completed, local_curriculum{{/str}}</span>
+                                    {{/iscompleted}}
+                                    {{#isactive}}
+                                        <span class="badge badge-warning">{{#str}}inprogress, local_curriculum{{/str}}</span>
+                                    {{/isactive}}
+                                    {{#islocked}}
+                                        <span class="badge badge-secondary">{{#str}}locked, local_curriculum{{/str}}</span>
+                                    {{/islocked}}
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                {{#hascourses}}
+                                    <div class="mb-3 px-3 pt-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>{{#str}}courses, local_curriculum{{/str}}: {{completedcourses}} {{#str}}of, local_curriculum{{/str}} {{totalcourses}}</small>
+                                            <small>{{cycleprogress}}%</small>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar {{#iscompleted}}bg-success{{/iscompleted}}{{#isactive}}bg-primary{{/isactive}}{{#islocked}}bg-secondary{{/islocked}}"
+                                                 role="progressbar" style="width: {{cycleprogress}}%"
+                                                 aria-valuenow="{{cycleprogress}}" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        {{#courses}}
+                                            <li class="list-group-item d-flex align-items-center curriculum-course-item curriculum-course-{{statusclass}}">
+                                                <span class="curriculum-course-icon mr-2">
+                                                    {{#iscomplete}}
+                                                        <i class="fa fa-check-circle text-success" aria-hidden="true"></i>
+                                                    {{/iscomplete}}
+                                                    {{^iscomplete}}
+                                                        {{#hasprogress}}
+                                                            <i class="fa fa-spinner fa-spin text-primary" aria-hidden="true"></i>
+                                                        {{/hasprogress}}
+                                                        {{^hasprogress}}
+                                                            {{#islocked}}
+                                                                <i class="fa fa-lock text-muted" aria-hidden="true"></i>
+                                                            {{/islocked}}
+                                                            {{^islocked}}
+                                                                <i class="fa fa-circle-o text-muted" aria-hidden="true"></i>
+                                                            {{/islocked}}
+                                                        {{/hasprogress}}
+                                                    {{/iscomplete}}
+                                                </span>
+                                                <div class="flex-grow-1">
+                                                    <a href="{{courseurl}}" class="curriculum-course-name">{{coursename}}</a>
+                                                    {{#hasprogress}}
+                                                        {{^iscomplete}}
+                                                            <div class="progress mt-1" style="height: 4px;">
+                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                                     style="width: {{progresswidth}}%"
+                                                                     aria-valuenow="{{progresswidth}}" aria-valuemin="0" aria-valuemax="100">
+                                                                </div>
+                                                            </div>
+                                                        {{/iscomplete}}
+                                                    {{/hasprogress}}
+                                                </div>
+                                                <span class="ml-2 curriculum-course-progress-label">
+                                                    {{#iscomplete}}
+                                                        <span class="text-success">{{#str}}completed, local_curriculum{{/str}}</span>
+                                                    {{/iscomplete}}
+                                                    {{^iscomplete}}
+                                                        {{#hasprogress}}
+                                                            <span class="text-primary">{{progress}}%</span>
+                                                        {{/hasprogress}}
+                                                        {{^hasprogress}}
+                                                            {{#islocked}}
+                                                                <span class="text-muted">{{#str}}locked, local_curriculum{{/str}}</span>
+                                                            {{/islocked}}
+                                                            {{^islocked}}
+                                                                <span class="text-muted">{{#str}}notstarted, local_curriculum{{/str}}</span>
+                                                            {{/islocked}}
+                                                        {{/hasprogress}}
+                                                    {{/iscomplete}}
+                                                </span>
+                                            </li>
+                                        {{/courses}}
+                                    </ul>
+                                {{/hascourses}}
+                                {{^hascourses}}
+                                    <div class="p-3 text-muted">
+                                        {{#str}}noitems, local_curriculum{{/str}}
+                                    </div>
+                                {{/hascourses}}
+                            </div>
+                        </div>
+                    {{/cycles}}
+                </div>
+            {{/hascycles}}
+        </div>
+    {{/currentprogram}}
+
+    {{#hashistory}}
+        <div class="curriculum-dashboard-history">
+            <h5>
+                <a data-toggle="collapse" href="#curriculum-history" role="button"
+                   aria-expanded="false" aria-controls="curriculum-history"
+                   class="text-decoration-none text-dark">
+                    {{#pix}} e/restore_last_draft {{/pix}}
+                    {{#str}}programhistory, local_curriculum{{/str}}
+                    {{#pix}} t/expanded {{/pix}}
+                </a>
+            </h5>
+            <div class="collapse" id="curriculum-history">
+                {{#historyprograms}}
+                    <div class="card mb-3 curriculum-dashboard-history-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">{{programname}}</h6>
+                                <small class="text-muted">{{#str}}version, local_curriculum{{/str}}: {{versionname}}</small>
+                            </div>
+                            {{#endreasonlabel}}
+                                <span class="badge badge-warning">{{endreasonlabel}}</span>
+                            {{/endreasonlabel}}
+                        </div>
+                        <div class="card-body p-0">
+                            {{#hascycles}}
+                                <ul class="list-group list-group-flush">
+                                    {{#cycles}}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <span class="mr-2">
+                                                    {{#iscompleted}}
+                                                        <i class="fa fa-check-circle text-success" aria-hidden="true"></i>
+                                                    {{/iscompleted}}
+                                                    {{#isactive}}
+                                                        <i class="fa fa-play-circle text-primary" aria-hidden="true"></i>
+                                                    {{/isactive}}
+                                                    {{#islocked}}
+                                                        <i class="fa fa-lock text-muted" aria-hidden="true"></i>
+                                                    {{/islocked}}
+                                                </span>
+                                                <span>{{cyclename}}</span>
+                                            </div>
+                                            <div>
+                                                {{#iscompleted}}
+                                                    <span class="badge badge-success">{{#str}}completed, local_curriculum{{/str}}</span>
+                                                {{/iscompleted}}
+                                                {{#isactive}}
+                                                    <span class="badge badge-primary">{{cycleprogress}}%</span>
+                                                {{/isactive}}
+                                                {{#islocked}}
+                                                    <span class="badge badge-secondary">{{#str}}locked, local_curriculum{{/str}}</span>
+                                                {{/islocked}}
+                                            </div>
+                                        </li>
+                                    {{/cycles}}
+                                </ul>
+                            {{/hascycles}}
+                        </div>
+                    </div>
+                {{/historyprograms}}
+            </div>
+        </div>
+    {{/hashistory}}
+</div>
+{{#js}}
+require(['local_curriculum/dashboard'], function(mod) {
+    mod.init();
+});
+{{/js}}

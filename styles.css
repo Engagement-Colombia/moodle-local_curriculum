@@ -311,3 +311,234 @@
         order: 2;
     }
 }
+
+/* ===================== Dashboard styles ===================== */
+
+.curriculum-dashboard {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* Overall progress bar in header */
+.curriculum-dashboard-overall-progress {
+    width: 120px;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.curriculum-dashboard-overall-progress .progress-bar {
+    border-radius: 4px;
+}
+
+/* Stepper */
+.curriculum-stepper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 0 10px;
+    overflow-x: auto;
+}
+
+.curriculum-stepper-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    min-width: 90px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.curriculum-stepper-step:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.curriculum-stepper-step:focus {
+    outline: 2px solid #06c;
+    outline-offset: 2px;
+}
+
+.curriculum-stepper-selected {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Stepper connecting line */
+.curriculum-stepper-line {
+    position: absolute;
+    top: 22px;
+    right: 50%;
+    width: 100%;
+    height: 3px;
+    z-index: 0;
+}
+
+.curriculum-stepper-line-completed {
+    background-color: #28a745;
+}
+
+.curriculum-stepper-line-active {
+    background: linear-gradient(to right, #28a745, #007bff);
+}
+
+.curriculum-stepper-line-locked {
+    background-color: #dee2e6;
+}
+
+/* Stepper circle */
+.curriculum-stepper-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.curriculum-stepper-step:hover .curriculum-stepper-circle {
+    transform: scale(1.1);
+}
+
+.curriculum-stepper-completed .curriculum-stepper-circle {
+    background-color: #28a745;
+    color: #fff;
+    border: 3px solid #28a745;
+}
+
+.curriculum-stepper-active .curriculum-stepper-circle {
+    background-color: #007bff;
+    color: #fff;
+    border: 3px solid #007bff;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25);
+}
+
+.curriculum-stepper-locked .curriculum-stepper-circle {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 3px solid #dee2e6;
+}
+
+/* Stepper labels */
+.curriculum-stepper-label {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    color: #333;
+    max-width: 100px;
+    word-break: break-word;
+    line-height: 1.3;
+}
+
+.curriculum-stepper-locked .curriculum-stepper-label {
+    color: #999;
+}
+
+.curriculum-stepper-progress-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: #007bff;
+    margin-top: 2px;
+}
+
+/* Cycle detail panels */
+.curriculum-cycle-detail {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.curriculum-cycle-detail-header-completed {
+    background-color: rgba(40, 167, 69, 0.08);
+    border-bottom: 2px solid #28a745;
+}
+
+.curriculum-cycle-detail-header-active {
+    background-color: rgba(0, 123, 255, 0.08);
+    border-bottom: 2px solid #007bff;
+}
+
+.curriculum-cycle-detail-header-locked {
+    background-color: rgba(108, 117, 125, 0.08);
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Course items */
+.curriculum-course-item {
+    transition: background-color 0.15s ease;
+}
+
+.curriculum-course-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.curriculum-course-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.curriculum-course-name {
+    font-weight: 500;
+    color: #333;
+    text-decoration: none;
+}
+
+.curriculum-course-name:hover {
+    text-decoration: underline;
+}
+
+.curriculum-course-progress-label {
+    font-size: 12px;
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: right;
+}
+
+/* History section */
+.curriculum-dashboard-history {
+    margin-top: 16px;
+}
+
+.curriculum-dashboard-history-card {
+    border-left: 3px solid #f0ad4e;
+}
+
+/* Responsive dashboard */
+@media (max-width: 768px) {
+    .curriculum-stepper {
+        justify-content: flex-start;
+        padding: 16px 0 8px;
+    }
+
+    .curriculum-stepper-step {
+        min-width: 70px;
+    }
+
+    .curriculum-stepper-circle {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .curriculum-stepper-line {
+        top: 18px;
+    }
+
+    .curriculum-stepper-label {
+        font-size: 11px;
+        max-width: 70px;
+    }
+
+    .curriculum-course-progress-label {
+        min-width: auto;
+    }
+}
