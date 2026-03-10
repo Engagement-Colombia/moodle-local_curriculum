@@ -34,14 +34,6 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
-    'local/curriculum:editprogram' => [
-        'riskbitmask' => RISK_SPAM | RISK_XSS,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
-            'manager' => CAP_ALLOW,
-        ],
-    ],
     'local/curriculum:configurecustomfields' => [
         'riskbitmask' => RISK_SPAM | RISK_XSS,
         'captype' => 'write',

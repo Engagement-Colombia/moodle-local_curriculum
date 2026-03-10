@@ -81,7 +81,7 @@ class program_handler extends handler {
      * @return bool true if the current can edit custom field, false otherwise
      */
     public function can_edit(field_controller $field, int $instanceid = 0): bool {
-        return has_capability('local/curriculum:editprogram', $this->get_instance_context($instanceid));
+        return has_capability('local/curriculum:manage', $this->get_instance_context($instanceid));
     }
 
     /**
@@ -92,7 +92,7 @@ class program_handler extends handler {
      * @return bool true if the current can view custom field, false otherwise
      */
     public function can_view(field_controller $field, int $instanceid): bool {
-        return has_capability('local/curriculum:editprogram', $this->get_instance_context($instanceid));
+        return has_capability('local/curriculum:manage', $this->get_instance_context($instanceid));
     }
 
     /**

@@ -599,6 +599,34 @@
     border-left: 3px solid #f0ad4e;
 }
 
+/* Docs */
+.local-curriculum-docs table {
+    border-collapse: collapse;
+    margin-bottom: 16px;
+
+    thead {
+        background-color: #f8f9fa;
+
+        th {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+    }
+
+    td {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+    }
+}
+
+.local-curriculum-docs pre {
+    background-color: var(--gray);
+    padding: 10px 5px;
+    color: var(--white);
+    display: block;
+}
+
 /* Responsive dashboard */
 @media (max-width: 768px) {
     .curriculum-stepper {
