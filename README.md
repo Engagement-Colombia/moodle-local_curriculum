@@ -18,6 +18,11 @@ Component for managing learning plans, versions, and learning cycles.
 * **GIT:** https://github.com/Engagement-Colombia/moodle-local_curriculum
 * **Powered by:** [BambuCo](https://bambuco.co) - [Engagement](https://engagement.com.co/)
 
+## ToDo
+
+* Manage item validity periods
+* Use items conditions
+
 ## License
 
 2026 David Herney @ Engagement
