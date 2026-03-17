@@ -99,16 +99,47 @@ class dashboard implements renderable, templatable {
         }
 
         // Determine current vs history and endreason for each group.
+        // A program is only "history" when ALL cycles in the version are completed
+        // and none of the end reasons is "programchange". If the user has unfinished
+        // cycles or any cycle ended due to a program change, the program stays current.
         foreach ($programgroups as $key => &$group) {
             $hascurrent = false;
             $endreason = null;
+            $hasnonprogramchange = false;
+
+            // Check all cycles in this version, not just the ones with assignments.
+            $allcycleids = $DB->get_fieldset_select(
+                'local_curriculum_cycles',
+                'id',
+                'versionid = :versionid',
+                ['versionid' => $group['versionid']]
+            );
+            $totalcycles = count($allcycleids);
+
+            $assignedended = 0;
             foreach ($group['assignments'] as $a) {
                 if (empty($a->timeend)) {
                     $hascurrent = true;
                 } else {
+                    $assignedended++;
                     $endreason = $a->endreason;
+                    if ($a->endreason !== curriculum::ENDREASON_PROGRAM_CHANGE) {
+                        $hasnonprogramchange = true;
+                    }
                 }
             }
+
+            // If there are unassigned cycles remaining, the program is still current.
+            if ($assignedended < $totalcycles) {
+                $hascurrent = true;
+            }
+
+            // If any cycle ended with a reason different from programchange,
+            // the program should not go to history.
+            if ($hasnonprogramchange) {
+                $hascurrent = true;
+            }
+
             $group['iscurrent'] = $hascurrent;
             $group['endreason'] = $endreason;
         }
@@ -267,6 +298,22 @@ class dashboard implements renderable, templatable {
             }
 
             $cycles[] = $cycledata;
+        }
+
+        // Determine which cycle should be visible by default:
+        // 1. The first active cycle, or 2. The last completed cycle, or 3. The first cycle.
+        $defaultvisibleindex = 0;
+        foreach ($cycles as $i => $c) {
+            if ($c->isactive) {
+                $defaultvisibleindex = $i;
+                break;
+            }
+            if ($c->iscompleted) {
+                $defaultvisibleindex = $i;
+            }
+        }
+        if (isset($cycles[$defaultvisibleindex])) {
+            $cycles[$defaultvisibleindex]->isdefaultvisible = true;
         }
 
         // Calculate timeline data for the program.

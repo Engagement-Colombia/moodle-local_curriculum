@@ -54,6 +54,16 @@ class observer {
     }
 
     /**
+     * Event observer for core\event\course_completed
+     *
+     * @param \core\event\course_completed $event
+     */
+    public static function course_completed(\core\event\course_completed $event): void {
+        $data = $event->get_data();
+        curriculum::check_and_complete_cycles($data['relateduserid'], $data['courseid']);
+    }
+
+    /**
      * Common code to operate on user events.
      *
      * @param \core\event\base $event

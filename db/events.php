@@ -38,4 +38,8 @@ $observers = [
         'eventname' => \core\event\user_deleted::class,
         'callback' => 'local_curriculum\observer::user_deleted',
     ],
+    [
+        'eventname' => \core\event\course_completed::class,
+        'callback' => 'local_curriculum\observer::course_completed',
+    ],
 ];

@@ -45,6 +45,7 @@ $PAGE->set_context(context_system::instance());
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title(get_string('mycurriculum', 'local_curriculum'));
 $PAGE->set_heading($title);
+$PAGE->requires->js_call_amd('local_curriculum/dashboard', 'init');
 
 echo $OUTPUT->header();
 

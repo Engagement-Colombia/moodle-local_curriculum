@@ -284,6 +284,111 @@ class curriculum {
     }
 
     /**
+     * Check whether a user has completed all courses in a cycle.
+     *
+     * Uses get_cycle_courses_with_items() to resolve courses (supports wildcard patterns).
+     * A course is considered completed when it has a record in course_completions with
+     * timecompleted IS NOT NULL.
+     *
+     * @param int $userid The user ID.
+     * @param int $cycleid The cycle ID.
+     * @return bool True if all courses in the cycle are completed by the user.
+     */
+    public static function is_cycle_completed_by_user(int $userid, int $cycleid): bool {
+        global $DB;
+
+        $coursesitems = self::get_cycle_courses_with_items($cycleid);
+        if (empty($coursesitems)) {
+            return false;
+        }
+
+        $courseids = array_map(function ($entry) {
+            return $entry->course->id;
+        }, $coursesitems);
+
+        [$insql, $inparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+        $inparams['userid'] = $userid;
+        $sql = "SELECT COUNT(id)
+                  FROM {course_completions}
+                 WHERE userid = :userid
+                   AND course $insql
+                   AND timecompleted IS NOT NULL";
+        $completedcount = $DB->count_records_sql($sql, $inparams);
+
+        return $completedcount >= count($courseids);
+    }
+
+    /**
+     * Check active cycles for a user given a completed course, and mark as completed if all courses are done.
+     *
+     * Finds all active (not ended) cycle assignments for the user, checks if the
+     * given course belongs to each cycle, and if all courses in the cycle are
+     * completed, marks the cycle as finished.
+     *
+     * @param int $userid The user ID.
+     * @param int $courseid The completed course ID.
+     */
+    public static function check_and_complete_cycles(int $userid, int $courseid): void {
+        global $DB;
+
+        $sql = "SELECT cu.id, cu.cycleid
+                  FROM {local_curriculum_cycle_users} cu
+                 WHERE cu.userid = :userid
+                   AND cu.timeend IS NULL";
+        $activecycles = $DB->get_records_sql($sql, ['userid' => $userid]);
+
+        foreach ($activecycles as $ac) {
+            $coursesitems = self::get_cycle_courses_with_items($ac->cycleid);
+            $found = false;
+            foreach ($coursesitems as $entry) {
+                if ((int) $entry->course->id === (int) $courseid) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                continue;
+            }
+
+            if (self::is_cycle_completed_by_user($userid, $ac->cycleid)) {
+                self::complete_user_cycle($userid, $ac->cycleid);
+            }
+        }
+    }
+
+    /**
+     * Mark a user's active cycle as completed.
+     *
+     * Finds the active cycle_users record (timeend IS NULL) for the given user
+     * and cycle, and sets timeend and endreason.
+     *
+     * @param int $userid The user ID.
+     * @param int $cycleid The cycle ID.
+     * @param string $endreason The reason for ending the cycle.
+     * @return bool True if the record was updated, false if no active record found.
+     */
+    public static function complete_user_cycle(int $userid, int $cycleid, string $endreason = self::ENDREASON_COMPLETED): bool {
+        global $DB;
+
+        $record = $DB->get_record('local_curriculum_cycle_users', [
+            'userid' => $userid,
+            'cycleid' => $cycleid,
+            'timeend' => null,
+        ]);
+
+        if (!$record) {
+            return false;
+        }
+
+        $record->timeend = time();
+        $record->endreason = $endreason;
+        $DB->update_record('local_curriculum_cycle_users', $record);
+
+        return true;
+    }
+
+    /**
      * Enrol a user in all courses linked to a cycle via the curriculum enrolment plugin.
      *
      * Uses the enrol_curriculum plugin. If a course does not have a curriculum

@@ -40,8 +40,8 @@ define(['jquery'], function($) {
          * Initializes the dashboard interactivity.
          */
         init: function() {
-            $(document).on('click', SELECTORS.STEP, this.handleStepClick.bind(this));
-            $(document).on('keydown', SELECTORS.STEP, this.handleStepKeydown.bind(this));
+            $(SELECTORS.STEP).on('click', this.handleStepClick.bind(this));
+            $(SELECTORS.STEP).on('keydown', this.handleStepKeydown.bind(this));
         },
 
         /**

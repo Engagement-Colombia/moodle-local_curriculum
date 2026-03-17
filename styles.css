@@ -481,6 +481,11 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.curriculum-stepper-circle i {
+    font-size: 20px;
+    margin: 0;
+}
+
 .curriculum-stepper-step:hover .curriculum-stepper-circle {
     transform: scale(1.1);
 }
