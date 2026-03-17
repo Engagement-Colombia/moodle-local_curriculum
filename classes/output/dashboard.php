@@ -356,7 +356,16 @@ class dashboard implements renderable, templatable {
         $program->totalcycles = $totalcycles;
         $program->completedcycles = $completedcycles;
         if ($totalcycles > 0) {
-            $program->overallprogress = round(($completedcycles / $totalcycles) * 100);
+            $cycleweight = 100 / $totalcycles;
+            $overallprogress = 0;
+            foreach ($cycles as $cycledata) {
+                if ($cycledata->iscompleted) {
+                    $overallprogress += $cycleweight;
+                } else {
+                    $overallprogress += $cycleweight * ($cycledata->cycleprogress / 100);
+                }
+            }
+            $program->overallprogress = round($overallprogress);
         } else {
             $program->overallprogress = 0;
         }
