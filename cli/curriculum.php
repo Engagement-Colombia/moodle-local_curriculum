@@ -35,7 +35,7 @@ $actions = [
     'check-completions' => 'Check active cycles and close those with all courses completed (--userid=ID optional)',
 ];
 
-list($options, $unrecognized) = cli_get_params(
+[$options, $unrecognized] = cli_get_params(
     [
         'help'      => false,
         'action'    => '',
@@ -87,12 +87,11 @@ if (!isset($actions[$action])) {
     cli_error("Unknown action '{$action}'.\n\n{$help}");
 }
 
-// -------------------------------------------------------
-// Action handlers.
-// -------------------------------------------------------
-
+/**
+ * Action handlers.
+ * Each case in the switch corresponds to an action. Add new cases as you implement new features.
+ */
 switch ($action) {
-
     case 'status':
         $programs = $DB->count_records('local_curriculum_programs');
         $versions = $DB->count_records('local_curriculum_versions');

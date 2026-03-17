@@ -29,7 +29,8 @@
         "langs": [
             {"code": "en", "label": "EN", "selected": false},
             {"code": "es", "label": "ES", "selected": true}
-        ]
+        ],
+        "tplmode": true
     }
 }}
 
@@ -47,6 +48,7 @@
     </div>
 </div>
 
+{{^tplmode}}
 {{#js}}
 require(['jquery'], function($) {
     var raw = {{{contentjson}}};
@@ -54,3 +56,4 @@ require(['jquery'], function($) {
     $('#docs-content').html(marked.parse(decoded));
 });
 {{/js}}
+{{/tplmode}}
