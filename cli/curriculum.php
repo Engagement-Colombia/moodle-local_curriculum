@@ -87,10 +87,8 @@ if (!isset($actions[$action])) {
     cli_error("Unknown action '{$action}'.\n\n{$help}");
 }
 
-/**
- * Action handlers.
- * Each case in the switch corresponds to an action. Add new cases as you implement new features.
- */
+// Action handlers.
+// Each case in the switch corresponds to an action. Add new cases as you implement new features.
 switch ($action) {
     case 'status':
         $programs = $DB->count_records('local_curriculum_programs');

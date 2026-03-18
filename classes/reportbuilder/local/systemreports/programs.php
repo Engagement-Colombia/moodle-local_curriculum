@@ -88,7 +88,7 @@ class programs extends system_report {
 
         // Delete.
         $deleteaction = new action(
-            new moodle_url('/local/curriculum/manage.php', ['id' => ':id', 'action' => 'delete']),
+            new moodle_url('/local/curriculum/manage.php', ['id' => ':id', 'action' => 'delete', 'sesskey' => sesskey()]),
             new pix_icon('t/delete', get_string('delete')),
             [
                 'onclick' => 'return confirm("' . get_string('confirmdeleteprogram', 'local_curriculum') . '");',

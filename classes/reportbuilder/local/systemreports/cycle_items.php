@@ -92,7 +92,7 @@ class cycle_items extends system_report {
         $deleteaction = new action(
             new moodle_url(
                 '/local/curriculum/manage.php',
-                ['id' => ':id', 'action' => 'delete', 'ptype' => cycleitempage::PAGEKEY]
+                ['id' => ':id', 'action' => 'delete', 'ptype' => cycleitempage::PAGEKEY, 'sesskey' => sesskey()]
             ),
             new pix_icon('t/delete', get_string('delete')),
             [

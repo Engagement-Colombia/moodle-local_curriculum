@@ -161,6 +161,7 @@ class cycle extends managepage {
                 }
                 break;
             case 'delete':
+                require_sesskey();
                 $id = required_param('id', PARAM_INT);
                 $cycle = $DB->get_record('local_curriculum_cycles', ['id' => $id], '*', MUST_EXIST);
 

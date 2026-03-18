@@ -105,7 +105,10 @@ class cycles extends system_report {
 
         // Delete.
         $deleteaction = new action(
-            new moodle_url('/local/curriculum/manage.php', ['id' => ':id', 'action' => 'delete', 'ptype' => cyclepage::PAGEKEY]),
+            new moodle_url(
+                '/local/curriculum/manage.php',
+                ['id' => ':id', 'action' => 'delete', 'ptype' => cyclepage::PAGEKEY, 'sesskey' => sesskey()]
+            ),
             new pix_icon('t/delete', get_string('delete')),
             [
                 'onclick' => 'return confirm("' . get_string('confirmdeletecycle', 'local_curriculum') . '");',

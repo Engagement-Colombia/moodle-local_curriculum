@@ -82,6 +82,7 @@ class program extends managepage {
                         $record->timecreated = time();
                         $programid = $DB->insert_record('local_curriculum_programs', $record);
                         $created = true;
+                        $data->id = $programid;
                     }
 
                     // Save description with files.
@@ -126,6 +127,7 @@ class program extends managepage {
                 break;
             case 'delete':
                 $id = required_param('id', PARAM_INT);
+                require_sesskey();
 
                 // Check if the program exists.
                 $program = $DB->get_record('local_curriculum_programs', ['id' => $id], '*', MUST_EXIST);

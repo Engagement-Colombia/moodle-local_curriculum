@@ -97,7 +97,10 @@ class versions extends system_report {
 
         // Delete.
         $deleteaction = new action(
-            new moodle_url('/local/curriculum/manage.php', ['id' => ':id', 'action' => 'delete', 'ptype' => versionpage::PAGEKEY]),
+            new moodle_url(
+                '/local/curriculum/manage.php',
+                ['id' => ':id', 'action' => 'delete', 'ptype' => versionpage::PAGEKEY, 'sesskey' => sesskey()]
+            ),
             new pix_icon('t/delete', get_string('delete')),
             [
                 'onclick' => 'return confirm("' . get_string('confirmdeleteversion', 'local_curriculum') . '");',

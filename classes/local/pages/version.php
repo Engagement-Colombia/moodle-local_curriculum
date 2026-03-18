@@ -122,6 +122,7 @@ class version extends managepage {
                 break;
             case 'delete':
                 $id = required_param('id', PARAM_INT);
+                require_sesskey();
                 $version = $DB->get_record('local_curriculum_versions', ['id' => $id], '*', MUST_EXIST);
 
                 // Check cycles.
